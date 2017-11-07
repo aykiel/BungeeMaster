@@ -1,8 +1,19 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.1'
+    }
+}
+
+
 group 'me.tonymaster21.bungeemaster'
 version '2.0.0'
 
+apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'java'
 
 sourceCompatibility = '1.8'
@@ -22,6 +33,9 @@ repositories {
     maven {
         url "https://raw.githubusercontent.com/bensku/mvn-repo/master"
     }
+    maven {
+        url "http://repo.bstats.org/content/repositories/releases/"
+    }
 }
 
 dependencies {
@@ -30,7 +44,11 @@ dependencies {
     compile (group: 'net.md-5', name: 'bungeecord-api', version: bungeecordVersion)
     compile (group: 'commons-io', name: 'commons-io', version: '2.6')
     compile (group: 'commons-lang', name: 'commons-lang', version: '2.6')
-    compile (group: 'ch.njol', name: 'Skript', version: '2.2-dev26')
+    compile (group: 'ch.njol', name: 'Skript', version: '2.2-dev26') {
+        transitive = false
+    }
+    compile (group: 'org.bstats', name: 'bstats-bukkit', version: '1.2')
+    compile (group: 'org.bstats', name: 'bstats-bungeecord', version: '1.2')
 }
 
 processResources {
@@ -40,3 +58,38 @@ processResources {
 }
 
 compileJava.options.encoding = 'UTF-8'
+
+jar.enabled = false;
+
+
+shadowJar {
+    baseName = 'BungeeMaster'
+    archiveName = "${baseName}-${version}.${extension}"
+    relocate 'org.bstats', 'me.tonymaster21.bungeemaster.org.bstats'
+    dependencies {
+        include(dependency('org.bstats:bstats-bukkit'))
+        include(dependency('org.bstats:bstats-bungeecord'))
+    }
+}
+
+task copyToSpigotServer(type: Copy) {
+    from("build/libs/BungeeMaster-${version}.jar")
+    into('test-servers/spigot/plugins')
+    rename { String fileName ->
+        fileName.replace("-${version}", '')
+    }
+}
+
+task copyToBungeeServer(type: Copy) {
+    from("build/libs/BungeeMaster-${version}.jar")
+    into('test-servers/bungee/plugins')
+    rename { String fileName ->
+        fileName.replace("-${version}", '')
+    }
+}
+
+build.dependsOn(shadowJar)
+
+artifacts {
+    shadowJar
+}

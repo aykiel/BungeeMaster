@@ -1,21 +1,23 @@
 package me.tonymaster21.bungeemaster.spigot;
 
-import me.tonymaster21.bungeemaster.packets.HeartbeatPacket;
-import me.tonymaster21.bungeemaster.packets.Packet;
-import me.tonymaster21.bungeemaster.packets.PacketException;
+import ch.njol.skript.Skript;
+import me.tonymaster21.bungeemaster.packets.*;
 import org.apache.commons.io.IOUtils;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 import java.net.Socket;
-import java.time.Instant;
+import java.util.concurrent.Callable;
 
 
 public class BungeeMaster extends JavaPlugin {
+    private Metrics metrics;
     private File configFile = new File(getDataFolder(), "config.yml");
     private Configuration configuration;
     private String host;
@@ -23,71 +25,92 @@ public class BungeeMaster extends JavaPlugin {
     private char[] password;
     private int heartbeatSeconds;
     private int reconnectAttempts;
-    private Socket socketClient;
-    private ObjectOutputStream objectOutputStream;
-    private ObjectInputStream objectInputStream;
+    private volatile boolean heartbeatDone = true;
     private volatile long ping;
+    private boolean locked = false;
 
     @Override
     public void onEnable() {
-        if (!getDataFolder().mkdirs()){
-            getLogger().warning("Failed to make data folder");
-        }
-        try (FileWriter fileWriter = new FileWriter(configFile)){
-            IOUtils.copy(getResource("spigot/config.yml"), fileWriter, "UTF-8");
-        } catch (IOException e) {
-            getLogger().warning("Failed to copy default configuration");
-            e.printStackTrace();
-        }
-        configuration = YamlConfiguration.loadConfiguration(configFile);
-        if (!configuration.contains("bungee")){
-            stop("Configuration section 'bungee' not found in configuration");
+        Plugin skriptPlugin = Bukkit.getPluginManager().getPlugin("Skript");
+        if (skriptPlugin == null){
+            stop("You need Skript to be able to run this addon. Download Skript at https://github.com/bensku/Skript/releases");
             return;
         }
-        ConfigurationSection bungeeSection = configuration.getConfigurationSection("bungee");
-        host = bungeeSection.getString("host");
-        port = bungeeSection.getInt("port");
-        password = bungeeSection.getString("password", "").toCharArray();
-        heartbeatSeconds = bungeeSection.getInt("heartbeat-seconds", 30);
-        reconnectAttempts = bungeeSection.getInt("reconnect-attempts", 7);
+        Skript.registerAddon(this);
+        metrics = new Metrics(this);
+        metrics.addCustomChart(new Metrics.SimplePie("skript_version", () -> skriptPlugin.getDescription() == null ? null : skriptPlugin.getDescription().getVersion()));
+        if (!getDataFolder().exists()){
+            getDataFolder().mkdir();
+        }
+        if (!configFile.exists()){
+            try (FileWriter fileWriter = new FileWriter(configFile)){
+                IOUtils.copy(getResource("spigot/config.yml"), fileWriter, "UTF-8");
+            } catch (IOException e) {
+                getLogger().warning("Failed to copy default configuration");
+                e.printStackTrace();
+            }
+        }
+        loadConfig();
         try {
-            socketClient = new Socket(host, port);
-            getLogger().info("Successfully connected to BungeeMaster on BungeeCord");
-            objectOutputStream = new ObjectOutputStream(socketClient.getOutputStream());
-            objectInputStream = new ObjectInputStream(socketClient.getInputStream());
-        } catch (IOException e) {
-            stop("Failed to connect to socketClient at " + getCombinedHost());
+            Socket socket = connect();
+            boolean status = sendPacket(new InitialPacket(), socket);
+            if (status) {
+                getLogger().info("Successfully connected to BungeeMaster on BungeeCord");
+            } else {
+                getLogger().warning("Did not receive true after sending initial packet to BungeeMaster on BungeeCord, connection issues?");
+                lock();
+            }
+            try {
+                socket.close();
+            } catch (IOException e) {
+                getLogger().warning("Failed to close initial socket, but that should be no problem");
+                e.printStackTrace();
+            }
+        } catch (IOException | PacketException e) {
+            getLogger().warning("Failed to connect to BungeeMaster on BungeeCord at " + getCombinedHost());
             e.printStackTrace();
+            lock();
         }
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
-            if (socketClient.isClosed()){
-                attemptReconnect();
+            if (locked || !heartbeatDone) {
+                return;
             }
-            long timestamp = getTimestamp();
-            ping = attemptSendPacket(new HeartbeatPacket(timestamp)) - timestamp;
+            heartbeatDone = false;
+            long timestamp = System.currentTimeMillis();
+            Long remoteTimestamp = attemptSendPacket(new HeartbeatPacket(timestamp));
+            if (remoteTimestamp == null){
+                return;
+            }
+            ping = remoteTimestamp - timestamp;
+            heartbeatDone = true;
         }, 0, heartbeatSeconds * 20);
-    }
-
-    @Override
-    public void onDisable() {
-        try {
-            if (socketClient != null){
-                socketClient.close();
-            }
-            if (objectOutputStream != null){
-                objectOutputStream.close();
-            }
-            if (objectInputStream != null){
-                objectInputStream.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public void stop(String message) {
         getLogger().warning(message);
         Bukkit.getPluginManager().disablePlugin(this);
+    }
+
+    public void loadConfig() {
+        configuration = YamlConfiguration.loadConfiguration(configFile);
+        ConfigurationSection bungeeSection;
+        if (configuration.contains("bungee")){
+            bungeeSection = configuration.getConfigurationSection("bungee");
+        } else {
+            getLogger().warning("The section 'bungee' in the configuration is not found, " +
+                    "defaults will be assumed. Delete the config file and restart to have a " +
+                    "clean valid configuration file.");
+            bungeeSection = configuration.createSection("bungee");
+        }
+        host = bungeeSection.getString("host");
+        port = bungeeSection.getInt("port");
+        password = bungeeSection.getString("password", "").toCharArray();
+        heartbeatSeconds = bungeeSection.getInt("heartbeat-seconds", 30);
+        reconnectAttempts = bungeeSection.getInt("reconnect-attempts", 7);
+    }
+
+    public Metrics getMetrics() {
+        return metrics;
     }
 
     public File getConfigFile() {
@@ -122,69 +145,90 @@ public class BungeeMaster extends JavaPlugin {
         return reconnectAttempts;
     }
 
-    public Socket getSocketClient() {
-        return socketClient;
+    public Socket connect() throws IOException {
+        return new Socket(host, port);
     }
 
-    public <T> T attemptSendPacket(Packet<T> packet){
+    public <T> T attemptSendPacket(Packet<T> packet) {
         try {
-            return sendPacket(packet);
-        } catch (PacketException e){
-            getLogger().warning(String.format("Failed to send a %s packet", packet.getName()));
+            return sendPacket(packet, connect());
+        } catch (IOException | PacketException e) {
+            getLogger().warning("Failed to send packet, attempting reconnect and trying again");
             e.printStackTrace();
-            if (!attemptReconnect()){
-                stop("Could not reconnect to BungeeMaster on BungeeCord");
+            Socket socket = attemptReconnect();
+            if (socket != null){
+                try {
+                    return sendPacket(packet, connect());
+                } catch (IOException | PacketException e1) {
+                    getLogger().warning("Second attempt of sending packet failed again");
+                    e1.printStackTrace();
+                    lock();
+                }
             }
         }
         return null;
     }
 
-    public <T> T sendPacket(Packet<T> packet) throws PacketException {
+    public <T> T sendPacket(Packet<T> packet, Socket socket) throws PacketException {
+        packet.setPassword(password);
+        ObjectOutputStream objectOutputStream;
         try {
+            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             objectOutputStream.writeObject(packet);
         } catch (IOException e) {
             throw new PacketException("Failed to write packet", e);
         }
+        ObjectInputStream objectInputStream;
+        Object object;
+        try {
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
+            object = objectInputStream.readObject();
+        } catch (IOException |ClassNotFoundException e) {
+            throw new PacketException("Failed to read result of packet", e);
+        }
+        if (object == null) {
+            throw new PacketException("Result is null");
+        }
+        Result result = (Result) object;
+        PacketStatus packetStatus = result.getPacketStatus();
+        if (packetStatus == null || !packetStatus.isSuccess()){
+            throw new PacketException("Packet result status is " + packet);
+        }
         if (packet.isReturning()){
-            Object object = null;
-            try {
-                object = objectInputStream.readObject();
-            } catch (IOException | ClassNotFoundException e) {
-                throw new PacketException("Failed to read returning object from packet", e);
-            }
-            if (!packet.getReturningClass().isAssignableFrom(object.getClass())){
+            Object resultObject = result.getObject();
+            if (!packet.getReturningClass().isAssignableFrom(resultObject.getClass())){
                 throw new PacketException(String.format("Returning object from packet of type %s is not of type %s",
                         packet.getName(), packet.getReturningClass().getCanonicalName()));
             }
-            return (T) object;
+            return (T) resultObject;
         }
         return null;
     }
 
-    public long getTimestamp(){
-        return Instant.now().getEpochSecond();
-    }
-
-    public boolean attemptReconnect() {
+    public Socket attemptReconnect() {
         getLogger().warning(String.format("Attempting to reconnect with %d attempts", reconnectAttempts));
         int attempts = 0;
         Throwable latestThrowable = null;
-        boolean connected = false;
-        while (attempts <= reconnectAttempts && !connected) {
+        while (attempts <= reconnectAttempts) {
             try {
-                socketClient = new Socket(host, port);
-                connected = true;
+                return new Socket(host, port);
             } catch (IOException e1) {
                 latestThrowable = e1;
             }
+            attempts++;
         }
-        if (!connected) {
-            getLogger().warning(String.format("Failed to reconnect to BungeeMaster on BungeeCord after %d attempts", reconnectAttempts));
-            if (latestThrowable != null){
-                latestThrowable.printStackTrace();
-            }
+        getLogger().warning(String.format("Failed to reconnect to BungeeMaster on BungeeCord after %d attempts", reconnectAttempts));
+        if (latestThrowable != null){
+            latestThrowable.printStackTrace();
+
         }
-        return connected;
+        lock();
+        return null;
+    }
+
+    public void lock() {
+        locked = true;
+        getLogger().warning("Plugin will not work properly until '/bungeemaster reconnect' is ran");
     }
 
     public long getPing() {
