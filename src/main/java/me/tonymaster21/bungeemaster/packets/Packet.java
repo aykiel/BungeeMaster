@@ -2,37 +2,19 @@ package me.tonymaster21.bungeemaster.packets;
 
 import java.io.Serializable;
 
-public abstract class Packet<T> implements Serializable {
-
+public abstract class Packet<R> implements Serializable {
     private static final long serialVersionUID = 3155928254662028879L;
     private String name;
     private PacketDirection packetDirection;
     private boolean returning;
-    private Class<? extends T> returningClass;
-    private T object;
+    private Class<? extends R> returningClass;
     private char[] password;
 
-    public Packet(String name, PacketDirection packetDirection, boolean returning, Class<? extends T> returningClass) {
+    public Packet(String name, PacketDirection packetDirection, boolean returning, Class<? extends R> returningClass) {
         this.name = name;
         this.packetDirection = packetDirection;
         this.returning = returning;
         this.returningClass = returningClass;
-    }
-
-    public Packet(String name, PacketDirection packetDirection, boolean returning, Class<? extends T> returningClass, T object) {
-        this.name = name;
-        this.packetDirection = packetDirection;
-        this.returning = returning;
-        this.returningClass = returningClass;
-        this.object = object;
-    }
-
-    public Packet(String name, PacketDirection packetDirection, boolean returning, Class<? extends T> returningClass, T object, char[] password) {
-        this.name = name;
-        this.packetDirection = packetDirection;
-        this.returning = returning;
-        this.returningClass = returningClass;
-        this.object = object;
     }
 
     public String getName() {
@@ -47,12 +29,8 @@ public abstract class Packet<T> implements Serializable {
         return returning;
     }
 
-    public Class<? extends T> getReturningClass() {
+    public Class<? extends R> getReturningClass() {
         return returningClass;
-    }
-
-    public T getObject() {
-        return object;
     }
 
     public char[] getPassword() {

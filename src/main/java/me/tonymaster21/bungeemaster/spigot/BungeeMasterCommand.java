@@ -61,8 +61,8 @@ public class BungeeMasterCommand implements CommandExecutor{
         if (args.length == 0) {
             sender.sendMessage(new String[]{
                 ChatColor.GOLD + "BungeeMaster " + bungeeMaster.getDescription().getVersion(),
-                ChatColor.GOLD + "Status: " + (bungeeMaster.isLocked() ? ChatColor.RED + "Not Connected" : ChatColor.GREEN + "Connected"),
-                ChatColor.GOLD + "Usage: &e/" + label + "[reconnect|reload|dump]"
+                ChatColor.GOLD + "Status: " + (bungeeMaster.isLocked() ? ChatColor.RED + "Not Connected" : ChatColor.GREEN + "Connected (ping: " + bungeeMaster.getPing() + "ms)"),
+                ChatColor.GOLD + "Usage: " + ChatColor.YELLOW + "/" + label + "[reconnect|reload|dump]"
             });
             return true;
         }

@@ -76,7 +76,7 @@ public class BungeeMaster extends JavaPlugin {
             }
             heartbeatDone = false;
             long timestamp = System.currentTimeMillis();
-            Long remoteTimestamp = attemptSendPacket(new HeartbeatPacket(timestamp));
+            Long remoteTimestamp = attemptSendPacket(new HeartbeatPacket());
             if (remoteTimestamp == null){
                 return;
             }
@@ -148,7 +148,7 @@ public class BungeeMaster extends JavaPlugin {
         return new Socket(host, port);
     }
 
-    public <T> T attemptSendPacket(Packet<T> packet) {
+    public <R> R attemptSendPacket(Packet<R> packet) {
         try {
             return sendPacket(packet, connect());
         } catch (IOException | PacketException e) {
@@ -168,7 +168,7 @@ public class BungeeMaster extends JavaPlugin {
         return null;
     }
 
-    public <T> T sendPacket(Packet<T> packet, Socket socket) throws PacketException {
+    public <R> R sendPacket(Packet<R> packet, Socket socket) throws PacketException {
         packet.setPassword(password);
         ObjectOutputStream objectOutputStream;
         try {
@@ -199,7 +199,7 @@ public class BungeeMaster extends JavaPlugin {
                 throw new PacketException(String.format("Returning object from packet of type %s is not of type %s",
                         packet.getName(), packet.getReturningClass().getCanonicalName()));
             }
-            return (T) resultObject;
+            return (R) resultObject;
         }
         return null;
     }
