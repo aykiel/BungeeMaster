@@ -1,0 +1,13 @@
+#IntelliJ#
+.idea/
+
+#Eclipse#
+.classpath
+.project
+.settings
+.metadata
+
+#Gradle#
+.gradle
+/build
+*/build

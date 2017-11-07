@@ -1,0 +1,10 @@
+# BungeeMaster Spigot Configuration
+# By TonyMaster21
+
+# Bungee Connection Details
+bungee:
+  heartbeat-seconds: 30
+  reconnect-attempts: 7
+  host: "127.0.0.1"
+  port: 2112
+  password: "ddc5f5e86d2f85e1b1ff763aff13ce0a"

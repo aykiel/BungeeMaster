@@ -1,0 +1,42 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+group 'me.tonymaster21.bungeemaster'
+version '2.0.0'
+
+apply plugin: 'java'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+def bukkitVersion = '1.12.2-R0.1-SNAPSHOT'
+def bungeecordVersion = '1.12-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+    maven {
+        url 'https://oss.sonatype.org/content/repositories/snapshots'
+    }
+    maven {
+        url "https://raw.githubusercontent.com/bensku/mvn-repo/master"
+    }
+}
+
+dependencies {
+    compile (group: 'org.bukkit', name: 'bukkit', version: bukkitVersion)
+    compile (group: 'org.spigotmc', name: 'spigot-api', version: bukkitVersion)
+    compile (group: 'net.md-5', name: 'bungeecord-api', version: bungeecordVersion)
+    compile (group: 'commons-io', name: 'commons-io', version: '2.6')
+    compile (group: 'commons-lang', name: 'commons-lang', version: '2.6')
+    compile (group: 'ch.njol', name: 'Skript', version: '2.2-dev26')
+}
+
+processResources {
+    filter ReplaceTokens, tokens: [
+        "VERSION": version
+    ]
+}
+
+compileJava.options.encoding = 'UTF-8'
