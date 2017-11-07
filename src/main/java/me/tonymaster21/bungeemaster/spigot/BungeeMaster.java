@@ -156,12 +156,12 @@ public class BungeeMaster extends JavaPlugin {
             e.printStackTrace();
             Socket socket = attemptReconnect();
             if (socket != null){
+                getLogger().info("Reconnect successful, attempting to send packet again");
                 try {
                     return sendPacket(packet, connect());
                 } catch (IOException | PacketException e1) {
                     getLogger().warning("Second attempt of sending packet failed again");
                     e1.printStackTrace();
-                    lock();
                 }
             }
         }

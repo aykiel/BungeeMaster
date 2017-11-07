@@ -76,7 +76,7 @@ public class BungeeMaster extends Plugin {
                                 } catch (EOFException e) {
                                     return;
                                 }
-                                Object toReturn = packetHandler.handlePacket(packet);
+                                Object toReturn = packetHandler.handlePacket(packet, socket);
                                 objectOutputStream.writeObject(toReturn);
                             } catch (EOFException e) {
                                 getLogger().warning("Socket did not send a packet with itself.");
