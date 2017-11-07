@@ -23,11 +23,14 @@ public class BungeePacketHandler implements PacketHandler{
         if (!Arrays.equals(bungeeMaster.getPassword(), packet.getPassword())){
             return new Result(null, PacketStatus.INVALID_PASSWORD);
         }
+        if (!PacketDirection.SPIGOT_TO_BUNGEE.equals(packet.getPacketDirection())){
+            return new Result(null, PacketStatus.WRONG_DIRECTION);
+        }
         if (packet instanceof InitialPacket) {
             return getSuccessfulResult(true);
         } else if (packet instanceof HeartbeatPacket){
             return getSuccessfulResult(System.currentTimeMillis());
         }
-        return null;
+        return new Result(null, PacketStatus.UNKNOWN_PACKET);
     }
 }

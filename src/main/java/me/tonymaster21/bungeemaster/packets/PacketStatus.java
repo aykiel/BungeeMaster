@@ -6,6 +6,7 @@ package me.tonymaster21.bungeemaster.packets;
 public enum PacketStatus {
     INVALID_PASSWORD(false),
     INVALID_FORMAT(false),
+    WRONG_DIRECTION(false),
     UNKNOWN_PACKET(false),
     SUCCESSFUL(true);
     boolean success;

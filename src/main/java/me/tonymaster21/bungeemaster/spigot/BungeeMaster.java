@@ -13,8 +13,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.concurrent.Callable;
-
 
 public class BungeeMaster extends JavaPlugin {
     private Metrics metrics;
@@ -71,6 +69,7 @@ public class BungeeMaster extends JavaPlugin {
             e.printStackTrace();
             lock();
         }
+        getCommand("bungeemaster").setExecutor(new BungeeMasterCommand(this));
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             if (locked || !heartbeatDone) {
                 return;
@@ -233,5 +232,13 @@ public class BungeeMaster extends JavaPlugin {
 
     public long getPing() {
         return ping;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 }
