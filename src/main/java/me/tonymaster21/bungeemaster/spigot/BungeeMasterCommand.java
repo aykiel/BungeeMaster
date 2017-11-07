@@ -123,6 +123,8 @@ public class BungeeMasterCommand implements CommandExecutor{
                 HttpURLConnection connection = (HttpURLConnection) new URL(DUMP_URL).openConnection();
                 connection.setFixedLengthStreamingMode(length);
                 connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
+                connection.setDoInput(true);
+                connection.setDoOutput(true);
                 connection.connect();
                 OutputStream outputStream = connection.getOutputStream();
                 outputStream.write(out);
