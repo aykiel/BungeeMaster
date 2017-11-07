@@ -1,9 +1,8 @@
 ![BungeeMaster Logo](https://i.imgur.com/u86WS8Q.png "BungeeMaster Logo")
-
-For server administrators, click [here](https://forums.skunity.com/resources/328/) to download.
-
+For server administrators, click [here](https://forums.skunity.com/resources/328/) to download.  
 For server developers, run `gradle build` to build.
 
+## Links
 Website: https://bungeemaster.tonymaster21.me/  
 skUnity: https://forums.skunity.com/resources/bungeemaster.328/  
 Discord: https://discord.gg/7YWg2kC  
