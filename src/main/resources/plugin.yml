@@ -8,5 +8,5 @@ soft-depend: [Skript]
 commands:
   bungeemaster:
     permission: bungeemaster.admin
-    usage: "/<command> [reload|reconnect]"
+    usage: "/<command> [reload|reconnect|dump]"
     aliases: [bm, bmaster]

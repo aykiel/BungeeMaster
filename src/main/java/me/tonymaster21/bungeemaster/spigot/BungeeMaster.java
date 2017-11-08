@@ -191,7 +191,7 @@ public class BungeeMaster extends JavaPlugin {
         Result result = (Result) object;
         PacketStatus packetStatus = result.getPacketStatus();
         if (packetStatus == null || !packetStatus.isSuccess()){
-            throw new PacketException("Packet result status is " + packet);
+            throw new PacketException("Packet result status is " + packetStatus);
         }
         if (packet.isReturning()){
             Object resultObject = result.getObject();
