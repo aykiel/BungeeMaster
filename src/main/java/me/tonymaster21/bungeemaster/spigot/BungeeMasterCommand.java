@@ -165,7 +165,7 @@ public class BungeeMasterCommand implements CommandExecutor{
                 }
             });
         } else {
-            return false;
+            sender.sendMessage(ChatColor.RED + "Invalid argument. Use " + ChatColor.GRAY + "/bm" + ChatColor.RED + " for help.");
         }
         return true;
     }

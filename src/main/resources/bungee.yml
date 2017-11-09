@@ -2,4 +2,4 @@ name: BungeeMaster
 main: me.tonymaster21.bungeemaster.bungee.BungeeMaster
 version: @VERSION@
 author: TonyMaster21
-description: ""
+description: Communicate with your Bungeecord instance!
