@@ -23,7 +23,7 @@ public class BungeePacketHandler implements PacketHandler{
 
     @Override
     public Result handlePacket(Packet packet, Socket socket) {
-        if (!Arrays.equals(bungeeMaster.getPassword(), packet.getPassword())){
+        if (bungeeMaster.getPassword().length != 0 && !Arrays.equals(bungeeMaster.getPassword(), packet.getPassword())){
             return new Result(null, PacketStatus.INVALID_PASSWORD);
         }
         if (!PacketDirection.SPIGOT_TO_BUNGEE.equals(packet.getPacketDirection())){

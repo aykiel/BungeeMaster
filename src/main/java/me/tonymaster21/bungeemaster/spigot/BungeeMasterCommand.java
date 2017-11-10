@@ -103,7 +103,7 @@ public class BungeeMasterCommand implements CommandExecutor{
                     arguments.put("spigot_skript_version", skriptPlugin.getDescription().getVersion());
                 }
                 arguments.put("spigot_bm_version", bungeeMaster.getDescription().getVersion());
-                arguments.put("spigot_bm_bungee_port", Integer.toString(bungeeMaster.getPort()));
+                arguments.put("spigot_bm_bungee_port", Integer.toString(bungeeMaster.getBungeeMasterConfig().getPort()));
                 arguments.put("spigot_bm_locked", Boolean.toString(bungeeMaster.isLocked()));
                 String plugins = Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(plugin -> {
                     String name = plugin.getName();
@@ -165,7 +165,7 @@ public class BungeeMasterCommand implements CommandExecutor{
                 }
             });
         } else {
-            sender.sendMessage(ChatColor.RED + "Invalid argument. Use " + ChatColor.GRAY + "/bm" + ChatColor.RED + " for help.");
+            sender.sendMessage(ChatColor.RED + "Invalid argument. Use " + ChatColor.GRAY + "/" + command + ChatColor.RED + " for help.");
         }
         return true;
     }

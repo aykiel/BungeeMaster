@@ -18,11 +18,7 @@ public class BungeeMaster extends JavaPlugin {
     private Metrics metrics;
     private File configFile = new File(getDataFolder(), "config.yml");
     private Configuration configuration;
-    private String host;
-    private int port;
-    private char[] password;
-    private int heartbeatSeconds;
-    private int reconnectAttempts;
+    private volatile BungeeMasterConfig bungeeMasterConfig;
     private volatile boolean heartbeatDone = true;
     private volatile long ping;
     private boolean locked = false;
@@ -82,7 +78,7 @@ public class BungeeMaster extends JavaPlugin {
             }
             ping = remoteTimestamp - timestamp;
             heartbeatDone = true;
-        }, 0, heartbeatSeconds * 20);
+        }, 0, bungeeMasterConfig.getHeartbeatSeconds() * 20);
     }
 
     public void stop(String message) {
@@ -101,11 +97,12 @@ public class BungeeMaster extends JavaPlugin {
                     "clean valid configuration file.");
             bungeeSection = configuration.createSection("bungee");
         }
-        host = bungeeSection.getString("host");
-        port = bungeeSection.getInt("port");
-        password = bungeeSection.getString("password", "").toCharArray();
-        heartbeatSeconds = bungeeSection.getInt("heartbeat-seconds", 30);
-        reconnectAttempts = bungeeSection.getInt("reconnect-attempts", 7);
+        String host = bungeeSection.getString("host");
+        int port = bungeeSection.getInt("port");
+        char[] password = bungeeSection.getString("password", "").toCharArray();
+        int heartbeatSeconds = bungeeSection.getInt("heartbeat-seconds", 30);
+        int reconnectAttempts = bungeeSection.getInt("reconnect-attempts", 7);
+        bungeeMasterConfig = new BungeeMasterConfig(host, port, password, heartbeatSeconds, reconnectAttempts);
     }
 
     public Metrics getMetrics() {
@@ -116,36 +113,16 @@ public class BungeeMaster extends JavaPlugin {
         return configFile;
     }
 
-    public Configuration getConfiguration() {
-        return configuration;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public int getPort() {
-        return port;
+    public BungeeMasterConfig getBungeeMasterConfig() {
+        return bungeeMasterConfig;
     }
 
     public String getCombinedHost() {
-        return String.format("%s:%d", host, port);
-    }
-
-    public char[] getPassword() {
-        return password;
-    }
-
-    public int getHeartbeatSeconds() {
-        return heartbeatSeconds;
-    }
-
-    public int getReconnectAttempts() {
-        return reconnectAttempts;
+        return String.format("%s:%d", bungeeMasterConfig.getHost(), bungeeMasterConfig.getPort());
     }
 
     public Socket connect() throws IOException {
-        return new Socket(host, port);
+        return new Socket(bungeeMasterConfig.getHost(), bungeeMasterConfig.getPort());
     }
 
     public <R> R attemptSendPacket(Packet<R> packet) {
@@ -169,7 +146,9 @@ public class BungeeMaster extends JavaPlugin {
     }
 
     public <R> R sendPacket(Packet<R> packet, Socket socket) throws PacketException {
-        packet.setPassword(password);
+        if (bungeeMasterConfig.getPassword().length != 0){
+            packet.setPassword(bungeeMasterConfig.getPassword());
+        }
         ObjectOutputStream objectOutputStream;
         try {
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
@@ -205,18 +184,18 @@ public class BungeeMaster extends JavaPlugin {
     }
 
     public Socket attemptReconnect() {
-        getLogger().warning(String.format("Attempting to reconnect with %d attempts", reconnectAttempts));
+        getLogger().warning(String.format("Attempting to reconnect with %d attempts", bungeeMasterConfig.getReconnectAttempts()));
         int attempts = 0;
         Throwable latestThrowable = null;
-        while (attempts <= reconnectAttempts) {
+        while (attempts <= bungeeMasterConfig.getReconnectAttempts()) {
             try {
-                return new Socket(host, port);
+                return connect();
             } catch (IOException e1) {
                 latestThrowable = e1;
             }
             attempts++;
         }
-        getLogger().warning(String.format("Failed to reconnect to BungeeMaster on BungeeCord after %d attempts", reconnectAttempts));
+        getLogger().warning(String.format("Failed to reconnect to BungeeMaster on BungeeCord after %d attempts", bungeeMasterConfig.getReconnectAttempts()));
         if (latestThrowable != null){
             latestThrowable.printStackTrace();
 
@@ -227,7 +206,7 @@ public class BungeeMaster extends JavaPlugin {
 
     public void lock() {
         locked = true;
-        getLogger().warning("Plugin will not work properly until '/bungeemaster reconnect' is ran");
+        getLogger().warning("Plugin will not work properly until '/bungeemaster reconnect' is ran. To reload the configuration run '/bungeemaster reload'.");
     }
 
     public long getPing() {
