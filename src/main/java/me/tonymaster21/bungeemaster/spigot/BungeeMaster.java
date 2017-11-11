@@ -17,7 +17,6 @@ import java.io.*;
 import java.net.Socket;
 
 public class BungeeMaster extends JavaPlugin {
-    private Metrics metrics;
     private File configFile = new File(getDataFolder(), "config.yml");
     private volatile BungeeMasterConfig bungeeMasterConfig;
     private volatile boolean heartbeatDone = true;
@@ -32,7 +31,7 @@ public class BungeeMaster extends JavaPlugin {
             return;
         }
         Skript.registerAddon(this);
-        metrics = new Metrics(this);
+        Metrics metrics = new Metrics(this);
         metrics.addCustomChart(new Metrics.SimplePie("skript_version", () -> skriptPlugin.getDescription() == null ? null : skriptPlugin.getDescription().getVersion()));
         if (!getDataFolder().exists()){
             getDataFolder().mkdir();
@@ -104,10 +103,6 @@ public class BungeeMaster extends JavaPlugin {
         int heartbeatSeconds = bungeeSection.getInt("heartbeat-seconds", 30);
         int reconnectAttempts = bungeeSection.getInt("reconnect-attempts", 7);
         bungeeMasterConfig = new BungeeMasterConfig(host, port, password, heartbeatSeconds, reconnectAttempts);
-    }
-
-    public Metrics getMetrics() {
-        return metrics;
     }
 
     public File getConfigFile() {
