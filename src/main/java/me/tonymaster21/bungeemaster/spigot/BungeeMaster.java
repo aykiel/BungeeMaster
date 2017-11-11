@@ -19,7 +19,6 @@ import java.net.Socket;
 public class BungeeMaster extends JavaPlugin {
     private Metrics metrics;
     private File configFile = new File(getDataFolder(), "config.yml");
-    private Configuration configuration;
     private volatile BungeeMasterConfig bungeeMasterConfig;
     private volatile boolean heartbeatDone = true;
     private volatile long ping;
@@ -89,7 +88,7 @@ public class BungeeMaster extends JavaPlugin {
     }
 
     public void loadConfig() {
-        configuration = YamlConfiguration.loadConfiguration(configFile);
+        Configuration configuration = YamlConfiguration.loadConfiguration(configFile);
         ConfigurationSection bungeeSection;
         if (configuration.contains("bungee")){
             bungeeSection = configuration.getConfigurationSection("bungee");
