@@ -131,8 +131,8 @@ public class BungeeMaster extends JavaPlugin {
             if (socket != null){
                 getLogger().info("Reconnect successful, attempting to send packet again");
                 try {
-                    return sendPacket(packet, connect());
-                } catch (IOException | PacketException e1) {
+                    return sendPacket(packet, socket);
+                } catch (PacketException e1) {
                     getLogger().warning("Second attempt of sending packet failed again");
                     e1.printStackTrace();
                 }
@@ -194,7 +194,6 @@ public class BungeeMaster extends JavaPlugin {
         getLogger().warning(String.format("Failed to reconnect to BungeeMaster on BungeeCord after %d attempts", bungeeMasterConfig.getReconnectAttempts()));
         if (latestThrowable != null){
             latestThrowable.printStackTrace();
-
         }
         lock();
         return null;
