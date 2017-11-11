@@ -201,7 +201,7 @@ public class BungeeMaster extends JavaPlugin {
 
     public void lock() {
         locked = true;
-        getLogger().warning("Plugin will not work properly until '/bungeemaster reconnect' is ran. To reload the configuration run '/bungeemaster reload'.");
+        getLogger().warning("Addon will not work properly until '/bungeemaster reconnect' is ran. To reload the configuration run '/bungeemaster reload'.");
     }
 
     public long getPing() {
