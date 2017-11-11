@@ -1,7 +1,12 @@
 package me.tonymaster21.bungeemaster.bungee;
 
-import me.tonymaster21.bungeemaster.packets.Packet;
-import me.tonymaster21.bungeemaster.packets.PacketHandler;
+import me.tonymaster21.bungeemaster.bungee.handlers.CollectBungeeDebugPacketHandler;
+import me.tonymaster21.bungeemaster.bungee.handlers.HeartbeatPacketHandler;
+import me.tonymaster21.bungeemaster.bungee.handlers.InitialPacketHandler;
+import me.tonymaster21.bungeemaster.packets.*;
+import me.tonymaster21.bungeemaster.packets.spigot.CollectBungeeDebugPacket;
+import me.tonymaster21.bungeemaster.packets.spigot.HeartbeatPacket;
+import me.tonymaster21.bungeemaster.packets.spigot.InitialPacket;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
@@ -14,6 +19,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 public class BungeeMaster extends Plugin {
     private Metrics metrics;
@@ -23,8 +32,12 @@ public class BungeeMaster extends Plugin {
     private InetAddress inetAddressHost;
     private int port;
     private char[] password;
-    private PacketHandler packetHandler = new BungeePacketHandler(this);
     private ServerSocket serverSocket;
+    private List<PacketHandler<?>> packetHandlers = new ArrayList<>(Arrays.asList(
+            new InitialPacketHandler(InitialPacket.class, this),
+            new HeartbeatPacketHandler(HeartbeatPacket.class, this),
+            new CollectBungeeDebugPacketHandler(CollectBungeeDebugPacket.class, this)
+    ));
 
     @Override
     public void onEnable() {
@@ -76,8 +89,25 @@ public class BungeeMaster extends Plugin {
                                 } catch (EOFException e) {
                                     return;
                                 }
-                                Object toReturn = packetHandler.handlePacket(packet, socket);
-                                objectOutputStream.writeObject(toReturn);
+                                Result result;
+                                if (getPassword().length != 0 && !Arrays.equals(getPassword(), packet.getPassword())){
+                                    result = new Result(null, PacketStatus.INVALID_PASSWORD);
+                                } else if (!PacketDirection.SPIGOT_TO_BUNGEE.equals(packet.getPacketDirection())
+                                        && !PacketDirection.BIDIRECTIONAL.equals(packet.getPacketDirection())){
+                                    result = new Result(null, PacketStatus.WRONG_DIRECTION);
+                                } else {
+                                    Optional<PacketHandler<?>> packetHandlerOptional = getPacketHandlers()
+                                            .stream()
+                                            .filter(packetHandler -> packetHandler.getPacketClass().isAssignableFrom(packet.getClass()))
+                                            .findFirst();
+                                    if (packetHandlerOptional.isPresent()){
+                                        result = ((PacketHandler<Packet>) packetHandlerOptional.get()).handlePacket(packet, socket);
+                                    } else {
+                                        result = new Result(null, PacketStatus.UNKNOWN_PACKET);
+                                        getLogger().warning("No packet handler found for packet class: " + packet.getClass().getCanonicalName());
+                                    }
+                                }
+                                objectOutputStream.writeObject(result);
                             } catch (EOFException e) {
                                 getLogger().warning("Socket did not send a packet with itself.");
                                 e.printStackTrace();
@@ -132,8 +162,8 @@ public class BungeeMaster extends Plugin {
         return password;
     }
 
-    public PacketHandler getPacketHandler() {
-        return packetHandler;
+    public List<PacketHandler<?>> getPacketHandlers() {
+        return packetHandlers;
     }
 
     public ServerSocket getServerSocket() {

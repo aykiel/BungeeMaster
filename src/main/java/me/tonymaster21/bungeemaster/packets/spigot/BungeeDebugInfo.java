@@ -1,4 +1,4 @@
-package me.tonymaster21.bungeemaster.packets;
+package me.tonymaster21.bungeemaster.packets.spigot;
 
 import java.io.Serializable;
 

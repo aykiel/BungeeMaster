@@ -1,8 +1,8 @@
 package me.tonymaster21.bungeemaster.spigot;
 
-import me.tonymaster21.bungeemaster.packets.BungeeDebugInfo;
-import me.tonymaster21.bungeemaster.packets.CollectBungeeDebugPacket;
-import me.tonymaster21.bungeemaster.packets.InitialPacket;
+import me.tonymaster21.bungeemaster.packets.spigot.BungeeDebugInfo;
+import me.tonymaster21.bungeemaster.packets.spigot.CollectBungeeDebugPacket;
+import me.tonymaster21.bungeemaster.packets.spigot.InitialPacket;
 import me.tonymaster21.bungeemaster.packets.PacketException;
 import me.tonymaster21.bungeemaster.util.PropertyUtil;
 import org.apache.commons.io.IOUtils;

@@ -2,6 +2,8 @@ package me.tonymaster21.bungeemaster.spigot;
 
 import ch.njol.skript.Skript;
 import me.tonymaster21.bungeemaster.packets.*;
+import me.tonymaster21.bungeemaster.packets.spigot.HeartbeatPacket;
+import me.tonymaster21.bungeemaster.packets.spigot.InitialPacket;
 import org.apache.commons.io.IOUtils;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
