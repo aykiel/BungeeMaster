@@ -33,8 +33,8 @@ public class BungeeMaster extends JavaPlugin {
         Skript.registerAddon(this);
         Metrics metrics = new Metrics(this);
         metrics.addCustomChart(new Metrics.SimplePie("skript_version", () -> skriptPlugin.getDescription() == null ? null : skriptPlugin.getDescription().getVersion()));
-        if (!getDataFolder().exists()){
-            getDataFolder().mkdir();
+        if (!getDataFolder().exists() && !getDataFolder().mkdir()){
+            getLogger().info("Failed to create data folder");
         }
         if (!configFile.exists()){
             try (FileWriter fileWriter = new FileWriter(configFile)){
