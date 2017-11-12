@@ -3,7 +3,10 @@ package me.tonymaster21.bungeemaster.spigot;
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptAddon;
 import ch.njol.skript.lang.Effect;
-import me.tonymaster21.bungeemaster.packets.*;
+import me.tonymaster21.bungeemaster.packets.Packet;
+import me.tonymaster21.bungeemaster.packets.PacketException;
+import me.tonymaster21.bungeemaster.packets.PacketStatus;
+import me.tonymaster21.bungeemaster.packets.Result;
 import me.tonymaster21.bungeemaster.packets.spigot.HeartbeatPacket;
 import me.tonymaster21.bungeemaster.packets.spigot.InitialPacket;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Documentation;
@@ -87,11 +90,11 @@ public class BungeeMaster extends JavaPlugin {
             heartbeatDone = false;
             long timestamp = System.currentTimeMillis();
             Long remoteTimestamp = attemptSendPacket(new HeartbeatPacket());
+            heartbeatDone = true;
             if (remoteTimestamp == null){
                 return;
             }
             ping = remoteTimestamp - timestamp;
-            heartbeatDone = true;
         }, 0, bungeeMasterConfig.getHeartbeatSeconds() * 20);
 
     }
