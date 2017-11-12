@@ -271,7 +271,8 @@ public class BungeeMaster extends JavaPlugin {
         return Arrays.stream(objects)
                 .map(obj -> {
                     if (obj instanceof Player) {
-                        return ((Player) obj).getUniqueId().toString();
+                        //Would use UUID but sometimes Spigot servers don't have true UUID forwarding enabled
+                        return ((Player) obj).getName();
                     } else if (obj instanceof String) {
                         return (String) obj;
                     }
