@@ -3,6 +3,8 @@ package me.tonymaster21.bungeemaster.spigot;
 import ch.njol.skript.Skript;
 import ch.njol.skript.SkriptAddon;
 import ch.njol.skript.lang.Effect;
+import ch.njol.skript.lang.Expression;
+import ch.njol.skript.lang.ExpressionType;
 import me.tonymaster21.bungeemaster.packets.Packet;
 import me.tonymaster21.bungeemaster.packets.PacketException;
 import me.tonymaster21.bungeemaster.packets.PacketStatus;
@@ -21,6 +23,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
+import java.lang.reflect.ParameterizedType;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Objects;
@@ -241,13 +244,31 @@ public class BungeeMaster extends JavaPlugin {
         this.locked = locked;
     }
 
+    public String[] addAddonPrefix(String[] syntaxes) {
+        return Arrays.stream(syntaxes).map(syntax -> "[(bm|bungeemaster)] " + syntax).toArray(String[]::new);
+    }
+
     public void registerEffect(Class<? extends Effect> effect){
         if (!effect.isAnnotationPresent(Documentation.class)){
-            throw new RegistrationException("Effect class: " + effect.getCanonicalName() + " does not have a Documentation annotation");
+            throw new RegistrationException("Effect class: " + effect.getCanonicalName()
+                    + " does not have a Documentation annotation");
         }
         Documentation documentation = effect.getDeclaredAnnotation(Documentation.class);
-        String[] syntaxes = documentation.syntax();
-        Skript.registerEffect(effect, Arrays.stream(syntaxes).map(syntax -> "[bm] [bungeemaster] " + syntax).toArray(String[]::new));
+        Skript.registerEffect(effect, addAddonPrefix(documentation.syntax()));
+    }
+
+    public void registerExpression(Class<? extends Expression> expression, ExpressionType expressionType) {
+        if (!expression.isAnnotationPresent(Documentation.class)) {
+            throw new RegistrationException("Expression class: " + expression.getCanonicalName()
+                    + " does not have a Documentation annotation");
+        }
+        Documentation documentation = expression.getDeclaredAnnotation(Documentation.class);
+        Skript.registerExpression(expression, getGenericType(expression, 0),
+                expressionType, addAddonPrefix(documentation.syntax()));
+    }
+
+    public Class getGenericType(Class clazz, int index) {
+        return (Class) ((ParameterizedType) clazz.getGenericSuperclass()).getActualTypeArguments()[index];
     }
 
     public static class RegistrationException extends RuntimeException {

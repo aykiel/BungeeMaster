@@ -60,4 +60,12 @@ public class EffectResult implements Serializable{
     public void setThrowable(Throwable throwable) {
         this.throwable = throwable;
     }
+
+    public Object getObject() {
+        return object;
+    }
+
+    public void setObject(Object object) {
+        this.object = object;
+    }
 }

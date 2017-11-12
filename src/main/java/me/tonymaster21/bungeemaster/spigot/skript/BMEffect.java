@@ -13,7 +13,7 @@ public abstract class BMEffect extends Effect{
         return BungeeMaster.getBungeeMaster();
     }
 
-    public void send(Packet<EffectResult> packet) {
+    public Object send(Packet<EffectResult> packet) {
         EffectResult effectResult = getBungeeMaster().attemptSendPacket(packet);
         if (!effectResult.isSuccess()){
             getBungeeMaster().getLogger().warning("Effect sending a " + packet.getName() + " packet failed. " +
@@ -22,5 +22,6 @@ public abstract class BMEffect extends Effect{
                 effectResult.getThrowable().printStackTrace();
             }
         }
+        return effectResult.getObject();
     }
 }
