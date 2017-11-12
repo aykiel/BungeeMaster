@@ -3,6 +3,7 @@ package me.tonymaster21.bungeemaster.bungee;
 import me.tonymaster21.bungeemaster.bungee.handlers.*;
 import me.tonymaster21.bungeemaster.packets.*;
 import me.tonymaster21.bungeemaster.packets.spigot.*;
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
@@ -15,12 +16,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.regex.Pattern;
 
 public class BungeeMaster extends Plugin {
+    private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}");
     private Metrics metrics;
     private File configFile;
     private Configuration configuration;
@@ -76,7 +76,7 @@ public class BungeeMaster extends Plugin {
             if (inetAddressHost == null){
                 inetAddressHost = InetAddress.getByName("0.0.0.0");
             }
-            serverSocket = new ServerSocket(port, 25, inetAddressHost);
+            serverSocket = new ServerSocket(port, 50, inetAddressHost);
             getLogger().info("Successfully started BungeeMaster on BungeeCord on " + getCombinedHost());
             getProxy().getScheduler().runAsync(this, () -> {
                 try {
@@ -170,5 +170,17 @@ public class BungeeMaster extends Plugin {
 
     public ServerSocket getServerSocket() {
         return serverSocket;
+    }
+
+    public ProxiedPlayer getPlayer(String representation) {
+        if (UUID_PATTERN.matcher(representation).matches()) {
+            UUID uuid = UUID.fromString(representation);
+            ProxiedPlayer player = getProxy().getPlayer(uuid);
+            if (player != null) {
+                return player;
+            }
+        }
+        return getProxy().getPlayer(representation);
+
     }
 }
