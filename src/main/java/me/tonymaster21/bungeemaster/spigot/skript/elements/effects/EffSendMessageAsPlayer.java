@@ -8,8 +8,6 @@ import me.tonymaster21.bungeemaster.spigot.BungeeMaster;
 import me.tonymaster21.bungeemaster.spigot.skript.BMEffect;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Documentation;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Example;
-import me.tonymaster21.bungeemaster.spigot.skript.annotations.Examples;
-import me.tonymaster21.bungeemaster.spigot.skript.annotations.Syntax;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
@@ -19,15 +17,20 @@ import java.util.Objects;
 /**
  * @author Andrew Tran
  */
-@Documentation(name = "Send Message As Player", description = "Force a player to say a message")
-@Examples(
-    @Example({
-        "on join:",
-        "\tsend bungeecord message \"Hello!\" as player"}
-    )
+@Documentation(
+    name = "Send Message As Player",
+    description = "Force a player to say a message",
+    examples = {
+        @Example({
+                "on join:",
+                "\tsend bungeecord message \"Hello!\" as player"}
+        )
+    },
+    syntax = {
+        "make %strings/%players% (say|send) [bungee][cord] [message][s] %strings%",
+        "send [bungee][cord] [chat] message[s] %strings% (from|as) %strings/players%"
+    }
 )
-@Syntax({"make %strings/%players% (say|send) [bungee][cord] [message][s] %strings%",
-        "send [bungee][cord] [chat] message[s] %strings% (from|as) %strings/players%"})
 public class EffSendMessageAsPlayer extends BMEffect{
     static {
         BungeeMaster.getBungeeMaster().registerEffect(EffSendMessageAsPlayer.class);

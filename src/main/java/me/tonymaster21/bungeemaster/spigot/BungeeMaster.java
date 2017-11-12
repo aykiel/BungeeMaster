@@ -6,7 +6,7 @@ import ch.njol.skript.lang.Effect;
 import me.tonymaster21.bungeemaster.packets.*;
 import me.tonymaster21.bungeemaster.packets.spigot.HeartbeatPacket;
 import me.tonymaster21.bungeemaster.packets.spigot.InitialPacket;
-import me.tonymaster21.bungeemaster.spigot.skript.annotations.Syntax;
+import me.tonymaster21.bungeemaster.spigot.skript.annotations.Documentation;
 import org.apache.commons.io.IOUtils;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -237,11 +237,12 @@ public class BungeeMaster extends JavaPlugin {
     }
 
     public void registerEffect(Class<? extends Effect> effect){
-        if (!effect.isAnnotationPresent(Syntax.class)){
-            throw new RegistrationException("Effect class: " + effect.getCanonicalName() + " does not have a Syntax annotation");
+        if (!effect.isAnnotationPresent(Documentation.class)){
+            throw new RegistrationException("Effect class: " + effect.getCanonicalName() + " does not have a Documentation annotation");
         }
-        Syntax syntaxes = effect.getAnnotation(Syntax.class);
-        Skript.registerEffect(effect, Arrays.stream(syntaxes.value()).map(syntax -> "[bm] [bungeemaster] " + syntax).toArray(String[]::new));
+        Documentation documentation = effect.getDeclaredAnnotation(Documentation.class);
+        String[] syntaxes = documentation.syntax();
+        Skript.registerEffect(effect, Arrays.stream(syntaxes).map(syntax -> "[bm] [bungeemaster] " + syntax).toArray(String[]::new));
     }
 
     public static class RegistrationException extends RuntimeException {

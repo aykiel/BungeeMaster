@@ -9,8 +9,6 @@ import me.tonymaster21.bungeemaster.spigot.BungeeMaster;
 import me.tonymaster21.bungeemaster.spigot.skript.BMEffect;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Documentation;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Example;
-import me.tonymaster21.bungeemaster.spigot.skript.annotations.Examples;
-import me.tonymaster21.bungeemaster.spigot.skript.annotations.Syntax;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
@@ -20,14 +18,19 @@ import java.util.Objects;
 /**
  * @author Andrew Tran
  */
-@Documentation(name = "Kick Player", description = "Kick a player from the proxy")
-@Examples(
-    @Example({
-        ""
-    })
+@Documentation(
+    name = "Kick Player",
+    description = "Kick a player from the proxy",
+    examples = {
+        @Example({
+            "kick bungee player due to \"Turn off your l33t hacks\""
+        })
+    },
+    syntax = {
+        "kick (all bungee[cord] players|everyone) [due to %-strings%]",
+        "kick bungee[cord] [player][s] %strings/players% [due to %-strings%]"
+    }
 )
-@Syntax({"kick (all bungee[cord] players|everyone) [due to %-strings%]",
-        "kick bungee[cord] [player][s] %strings/players% [due to %-strings%]"})
 public class EffKickPlayer extends BMEffect{
     static {
         BungeeMaster.getBungeeMaster().registerEffect(EffKickPlayer.class);

@@ -13,4 +13,6 @@ import java.lang.annotation.Target;
 public @interface Documentation {
     String name() default "";
     String description() default "";
+    Example[] examples();
+    String[] syntax();
 }

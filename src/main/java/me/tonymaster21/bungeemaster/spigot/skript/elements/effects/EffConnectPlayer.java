@@ -8,8 +8,6 @@ import me.tonymaster21.bungeemaster.spigot.BungeeMaster;
 import me.tonymaster21.bungeemaster.spigot.skript.BMEffect;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Documentation;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Example;
-import me.tonymaster21.bungeemaster.spigot.skript.annotations.Examples;
-import me.tonymaster21.bungeemaster.spigot.skript.annotations.Syntax;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
@@ -19,14 +17,19 @@ import java.util.Objects;
 /**
  * @author Andrew Tran
  */
-@Documentation(name = "Connect Player", description = "Connect a player to a server")
-@Examples(
-    @Example({
-        "connect all players to \"trollmc.org\""
-    })
+@Documentation(
+    name = "Connect Player",
+    description = "Connect a player to a server",
+    examples = {
+        @Example({
+                "connect all players to \"trollmc.org\""
+        })
+    },
+    syntax = {
+        "connect %strings/players% to [local] [server] %string%",
+        "connect %strings/players% to [remote] (ip|address) %string%"
+    }
 )
-@Syntax({"connect %strings/players% to [local] [server] %string%",
-        "connect %strings/players% to [remote] (ip|address) %string%"})
 public class EffConnectPlayer extends BMEffect {
     static {
         BungeeMaster.getBungeeMaster().registerEffect(EffConnectPlayer.class);
