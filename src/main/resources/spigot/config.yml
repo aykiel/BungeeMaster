@@ -1,6 +1,11 @@
 # BungeeMaster Spigot Configuration
 # By TonyMaster21
 
+# BungeeMaster Spigot Server Info
+port-automatic: true
+#If port-automatic is true, then port is ignored
+port: 3112
+
 # Bungee Connection Details
 bungee:
   heartbeat-seconds: 30

@@ -5,10 +5,7 @@ import ch.njol.skript.SkriptAddon;
 import ch.njol.skript.lang.Effect;
 import ch.njol.skript.lang.Expression;
 import ch.njol.skript.lang.ExpressionType;
-import me.tonymaster21.bungeemaster.packets.Packet;
-import me.tonymaster21.bungeemaster.packets.PacketException;
-import me.tonymaster21.bungeemaster.packets.PacketStatus;
-import me.tonymaster21.bungeemaster.packets.Result;
+import me.tonymaster21.bungeemaster.packets.*;
 import me.tonymaster21.bungeemaster.packets.spigot.HeartbeatPacket;
 import me.tonymaster21.bungeemaster.packets.spigot.InitialPacket;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Documentation;
@@ -24,18 +21,26 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 import java.lang.reflect.ParameterizedType;
+import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 
-public class BungeeMaster extends JavaPlugin {
+public class BungeeMaster extends JavaPlugin{
     private static BungeeMaster bungeeMaster;
 
+    private UUID uuid = UUID.randomUUID();
     private File configFile = new File(getDataFolder(), "config.yml");
-    private volatile BungeeMasterConfig bungeeMasterConfig;
+    private volatile BungeeMasterSpigotConfig bungeeMasterSpigotConfig;
     private volatile boolean heartbeatDone = true;
     private volatile long ping;
     private boolean locked = false;
+    private ServerSocket serverSocket;
+    private int port;
+    private int minecraftPort;
+
+    private List<PacketHandler<?>> packetHandlers = new ArrayList<>(Arrays.asList(
+
+    ));
 
     @Override
     public void onEnable() {
@@ -56,6 +61,7 @@ public class BungeeMaster extends JavaPlugin {
         if (!getDataFolder().exists() && !getDataFolder().mkdir()){
             getLogger().info("Failed to create data folder");
         }
+        minecraftPort = getServer().getPort();
         if (!configFile.exists()){
             try (FileWriter fileWriter = new FileWriter(configFile)){
                 IOUtils.copy(getResource("spigot/config.yml"), fileWriter, "UTF-8");
@@ -65,9 +71,87 @@ public class BungeeMaster extends JavaPlugin {
             }
         }
         loadConfig();
+        port = 3112;
+        if (bungeeMasterSpigotConfig.isServerPortAuto()) {
+            Throwable throwable = null;
+            while (bungeeMasterSpigotConfig.isServerPortAuto() && port <= bungeeMasterSpigotConfig.getServerPort() + 1000) {
+                try {
+                    serverSocket = new ServerSocket(3112);
+                    break;
+                } catch (IOException e) {
+                    throwable = e;
+                    port++;
+                }
+            }
+            if (serverSocket == null) {
+                stop("Failed to start server socket automatically");
+                if (throwable != null) {
+                    throwable.printStackTrace();
+                }
+                return;
+            }
+        } else {
+            port = bungeeMasterSpigotConfig.getServerPort();
+            try {
+                serverSocket = new ServerSocket(port);
+            } catch (IOException e) {
+                stop("Failed to start server socket");
+                e.printStackTrace();
+                return;
+            }
+        }
+        getLogger().info("Started server socket on port " + port);
+        final JavaPlugin javaPlugin = this;
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> {
+            while (!serverSocket.isClosed()) {
+                try {
+                    Socket socket = serverSocket.accept();
+                    Bukkit.getScheduler().runTaskAsynchronously(javaPlugin, () -> {
+                        try (ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+                             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream())) {
+                            Packet packet;
+                            try {
+                                packet = (Packet) objectInputStream.readObject();
+                            } catch (EOFException e) {
+                                return;
+                            }
+                            Result result;
+                            if (!Arrays.equals(packet.getPassword(), uuid.toString().toCharArray())) {
+                                result = new Result(PacketStatus.INVALID_PASSWORD);
+                            } else if (!PacketDirection.BUNGEE_TO_SPIGOT.equals(packet.getPacketDirection())
+                                    && !PacketDirection.BIDIRECTIONAL.equals(packet.getPacketDirection())){
+                                result = new Result(PacketStatus.WRONG_DIRECTION);
+                            } else {
+                                Optional<PacketHandler<?>> packetHandlerOptional = getPacketHandlers()
+                                        .stream()
+                                        .filter(packetHandler -> packetHandler.getPacketClass().isAssignableFrom(packet.getClass()))
+                                        .findFirst();
+                                if (packetHandlerOptional.isPresent()){
+                                    result = ((PacketHandler<Packet>) packetHandlerOptional.get()).handlePacket(packet, socket);
+                                } else {
+                                    result = new Result(PacketStatus.UNKNOWN_PACKET);
+                                    getLogger().warning("No packet handler found for packet class: " + packet.getClass().getCanonicalName());
+                                }
+                            }
+                            objectOutputStream.writeObject(result);
+                        } catch (EOFException e) {
+                            getLogger().warning("Socket did not send a packet with itself.");
+                            e.printStackTrace();
+                        } catch (IOException | ClassNotFoundException e) {
+                            getLogger().info("Failed to handle packet");
+                            e.printStackTrace();
+                        }
+                    });
+                } catch (IOException e) {
+                    getLogger().warning("Failed to accept packet");
+                    e.printStackTrace();
+                }
+            }
+        });
+
         try {
             Socket socket = connect();
-            boolean status = sendPacket(new InitialPacket(), socket);
+            boolean status = sendPacket(getInitialPacket(false), socket);
             if (status) {
                 getLogger().info("Successfully connected to BungeeMaster on BungeeCord");
             } else {
@@ -85,7 +169,6 @@ public class BungeeMaster extends JavaPlugin {
             e.printStackTrace();
             lock();
         }
-        getCommand("bungeemaster").setExecutor(new BungeeMasterCommand(this));
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             if (locked || !heartbeatDone) {
                 return;
@@ -98,8 +181,9 @@ public class BungeeMaster extends JavaPlugin {
                 return;
             }
             ping = remoteTimestamp - timestamp;
-        }, 0, bungeeMasterConfig.getHeartbeatSeconds() * 20);
+        }, 0, bungeeMasterSpigotConfig.getHeartbeatSeconds() * 20);
 
+        getCommand("bungeemaster").setExecutor(new BungeeMasterSpigotCommand(this));
     }
 
     public static BungeeMaster getBungeeMaster() {
@@ -122,28 +206,42 @@ public class BungeeMaster extends JavaPlugin {
                     "clean valid configuration file.");
             bungeeSection = configuration.createSection("bungee");
         }
+        boolean serverPortAuto = configuration.getBoolean("port-automatic", true);
+        int serverPort = configuration.getInt("port", 3112);
         String host = bungeeSection.getString("host");
         int port = bungeeSection.getInt("port");
         char[] password = bungeeSection.getString("password", "").toCharArray();
         int heartbeatSeconds = bungeeSection.getInt("heartbeat-seconds", 30);
         int reconnectAttempts = bungeeSection.getInt("reconnect-attempts", 7);
-        bungeeMasterConfig = new BungeeMasterConfig(host, port, password, heartbeatSeconds, reconnectAttempts);
+        bungeeMasterSpigotConfig = new BungeeMasterSpigotConfig(serverPortAuto, serverPort, host, port, password, heartbeatSeconds, reconnectAttempts);
+    }
+
+    public UUID getUuid() {
+        return uuid;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     public File getConfigFile() {
         return configFile;
     }
 
-    public BungeeMasterConfig getBungeeMasterConfig() {
-        return bungeeMasterConfig;
+    public InitialPacket getInitialPacket(boolean reconnection) {
+        return new InitialPacket(getUuid(), port, minecraftPort, reconnection);
+    }
+
+    public BungeeMasterSpigotConfig getBungeeMasterSpigotConfig() {
+        return bungeeMasterSpigotConfig;
     }
 
     public String getCombinedHost() {
-        return String.format("%s:%d", bungeeMasterConfig.getHost(), bungeeMasterConfig.getPort());
+        return String.format("%s:%d", bungeeMasterSpigotConfig.getHost(), bungeeMasterSpigotConfig.getPort());
     }
 
     public Socket connect() throws IOException {
-        return new Socket(bungeeMasterConfig.getHost(), bungeeMasterConfig.getPort());
+        return new Socket(bungeeMasterSpigotConfig.getHost(), bungeeMasterSpigotConfig.getPort());
     }
 
     public <R> R attemptSendPacket(Packet<R> packet) {
@@ -170,8 +268,8 @@ public class BungeeMaster extends JavaPlugin {
     }
 
     public <R> R sendPacket(Packet<R> packet, Socket socket) throws PacketException {
-        if (bungeeMasterConfig.getPassword().length != 0){
-            packet.setPassword(bungeeMasterConfig.getPassword());
+        if (bungeeMasterSpigotConfig.getPassword().length != 0){
+            packet.setPassword(bungeeMasterSpigotConfig.getPassword());
         }
         ObjectOutputStream objectOutputStream;
         try {
@@ -208,10 +306,10 @@ public class BungeeMaster extends JavaPlugin {
     }
 
     public Socket attemptReconnect() {
-        getLogger().warning(String.format("Attempting to reconnect with %d attempts", bungeeMasterConfig.getReconnectAttempts()));
+        getLogger().warning(String.format("Attempting to reconnect with %d attempts", bungeeMasterSpigotConfig.getReconnectAttempts()));
         int attempts = 0;
         Throwable latestThrowable = null;
-        while (attempts <= bungeeMasterConfig.getReconnectAttempts()) {
+        while (attempts <= bungeeMasterSpigotConfig.getReconnectAttempts()) {
             try {
                 return connect();
             } catch (IOException e1) {
@@ -219,7 +317,7 @@ public class BungeeMaster extends JavaPlugin {
             }
             attempts++;
         }
-        getLogger().warning(String.format("Failed to reconnect to BungeeMaster on BungeeCord after %d attempts", bungeeMasterConfig.getReconnectAttempts()));
+        getLogger().warning(String.format("Failed to reconnect to BungeeMaster on BungeeCord after %d attempts", bungeeMasterSpigotConfig.getReconnectAttempts()));
         if (latestThrowable != null){
             latestThrowable.printStackTrace();
         }
@@ -242,6 +340,10 @@ public class BungeeMaster extends JavaPlugin {
 
     public void setLocked(boolean locked) {
         this.locked = locked;
+    }
+
+    public List<PacketHandler<?>> getPacketHandlers() {
+        return packetHandlers;
     }
 
     public String[] addAddonPrefix(String[] syntaxes) {

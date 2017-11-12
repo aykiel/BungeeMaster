@@ -27,7 +27,7 @@ public class CollectBungeeDebugPacketHandler extends BungeePacketHandler<Collect
                     String mainClass = plugin.getClass().getCanonicalName();
                     String version = plugin.getDescription().getVersion();
                     return String.format("%s[main:%s,version:%s]", name, mainClass, version);
-                }).collect(Collectors.joining(", ")), bungeeMaster.getPort(),
+                }).collect(Collectors.joining(", ")), bungeeMaster.getConfig().getPort(),
                 bungeeMaster.getProxy().getPlayers().size()));
     }
 }

@@ -3,6 +3,7 @@ package me.tonymaster21.bungeemaster.bungee;
 import me.tonymaster21.bungeemaster.bungee.handlers.*;
 import me.tonymaster21.bungeemaster.packets.*;
 import me.tonymaster21.bungeemaster.packets.spigot.*;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
@@ -11,23 +12,15 @@ import net.md_5.bungee.config.YamlConfiguration;
 import org.bstats.bungeecord.Metrics;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Pattern;
 
 public class BungeeMaster extends Plugin {
     private static final Pattern UUID_PATTERN = Pattern.compile("[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}");
-    private Metrics metrics;
     private File configFile;
-    private Configuration configuration;
-    private String host;
-    private InetAddress inetAddressHost;
-    private int port;
-    private char[] password;
+    private volatile BungeeMasterBungeeConfig config;
     private ServerSocket serverSocket;
     private List<PacketHandler<?>> packetHandlers = new ArrayList<>(Arrays.asList(
             new InitialPacketHandler(InitialPacket.class, this),
@@ -44,42 +37,21 @@ public class BungeeMaster extends Plugin {
             new RetrieveServerAddressPacketHandler(RetrieveServerAddressPacket.class, this)
     ));
 
+    private volatile Map<UUID,BMServer> serverMap = new HashMap<>();
+    private volatile Map<String,UUID> serverUUIDMap = new HashMap<>();
+
     @Override
     public void onEnable() {
-        metrics = new Metrics(this);
+        new Metrics(this);
         if (!getDataFolder().exists()){
             getDataFolder().mkdir();
         }
         configFile = new File(getDataFolder(), "config.yml");
-        try {
-            if (!configFile.exists()) {
-                Files.copy(getResourceAsStream("bungee/config.yml"), configFile.toPath());
-            }
-        } catch (IOException e) {
-            getLogger().warning("Failed to copy default configuration");
-            e.printStackTrace();
-        }
-        try {
-            configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
-        } catch (IOException e) {
-            getLogger().warning("Failed to load configuration");
-            e.printStackTrace();
-        }
-        host = configuration.getString("host", "0.0.0.0");
-        port = configuration.getInt("port", 2112);
-        password = configuration.getString("password", "").toCharArray();
+        loadConfig();
+        getProxy().getPluginManager().registerCommand(this, new BungeeMasterBungeeCommand(this));
         final Plugin plugin = this;
         try {
-            inetAddressHost = InetAddress.getByName(host);
-        } catch (UnknownHostException e) {
-            getLogger().warning("Invalid host: " + host);
-            e.printStackTrace();
-        }
-        try {
-            if (inetAddressHost == null){
-                inetAddressHost = InetAddress.getByName("0.0.0.0");
-            }
-            serverSocket = new ServerSocket(port, 50, inetAddressHost);
+            serverSocket = new ServerSocket(config.getPort(), 50, config.getInetAddressHost());
             getLogger().info("Successfully started BungeeMaster on BungeeCord on " + getCombinedHost());
             getProxy().getScheduler().runAsync(this, () -> {
                 try {
@@ -95,7 +67,7 @@ public class BungeeMaster extends Plugin {
                                     return;
                                 }
                                 Result result;
-                                if (getPassword().length != 0 && !Arrays.equals(getPassword(), packet.getPassword())){
+                                if (getConfig().getPassword().length != 0 && !Arrays.equals(getConfig().getPassword(), packet.getPassword())){
                                     result = new Result(PacketStatus.INVALID_PASSWORD);
                                 } else if (!PacketDirection.SPIGOT_TO_BUNGEE.equals(packet.getPacketDirection())
                                         && !PacketDirection.BIDIRECTIONAL.equals(packet.getPacketDirection())){
@@ -123,7 +95,7 @@ public class BungeeMaster extends Plugin {
                         });
                     }
                 } catch (IOException e) {
-                    getLogger().info("Failed to accept socket");
+                    getLogger().warning("Failed to accept socket");
                     e.printStackTrace();
                 }
             });
@@ -143,28 +115,43 @@ public class BungeeMaster extends Plugin {
         }
     }
 
-    public File getConfigFile() {
-        return configFile;
+    public void loadConfig() {
+        try {
+            if (!configFile.exists()) {
+                Files.copy(getResourceAsStream("bungee/config.yml"), configFile.toPath());
+            }
+        } catch (IOException e) {
+            getLogger().warning("Failed to copy default configuration");
+            e.printStackTrace();
+        }
+        try {
+            Configuration configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(configFile);
+            String host = configuration.getString("host", "0.0.0.0");
+            int port = configuration.getInt("port", 2112);
+            char[] password = configuration.getString("password", "").toCharArray();
+            InetAddress inetAddressHost = null;
+            try {
+                inetAddressHost = InetAddress.getByName(host);
+            } catch (UnknownHostException e) {
+                getLogger().warning("Invalid host: " + host);
+                e.printStackTrace();
+            }
+            if (inetAddressHost == null){
+                inetAddressHost = InetAddress.getByName("0.0.0.0");
+            }
+            config = new BungeeMasterBungeeConfig(host, inetAddressHost, port, password);
+        } catch (IOException e) {
+            getLogger().warning("Failed to load configuration");
+            e.printStackTrace();
+        }
     }
 
-    public Configuration getConfiguration() {
-        return configuration;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public int getPort() {
-        return port;
+    public BungeeMasterBungeeConfig getConfig() {
+        return config;
     }
 
     public String getCombinedHost() {
-        return String.format("%s:%d", host, port);
-    }
-
-    public char[] getPassword() {
-        return password;
+        return String.format("%s:%d", getConfig().getHost(), getConfig().getPort());
     }
 
     public List<PacketHandler<?>> getPacketHandlers() {
@@ -184,6 +171,25 @@ public class BungeeMaster extends Plugin {
             }
         }
         return getProxy().getPlayer(representation);
+    }
 
+    public Map<UUID, BMServer> getServerMap() {
+        return serverMap;
+    }
+
+    public Map<String, UUID> getServerUUIDMap() {
+        return serverUUIDMap;
+    }
+
+    public BMServer getServerByUUID(UUID uuid) {
+        return serverMap.get(uuid);
+    }
+
+    public BMServer getServerByName(String name) {
+        return getServerByUUID(serverUUIDMap.get(name));
+    }
+
+    public BMServer getServerByServerInfo(ServerInfo serverInfo) {
+        return getServerByName(serverInfo.getName());
     }
 }

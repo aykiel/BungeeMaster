@@ -1,9 +1,8 @@
 package me.tonymaster21.bungeemaster.spigot;
 
+import me.tonymaster21.bungeemaster.packets.PacketException;
 import me.tonymaster21.bungeemaster.packets.spigot.BungeeDebugInfo;
 import me.tonymaster21.bungeemaster.packets.spigot.CollectBungeeDebugPacket;
-import me.tonymaster21.bungeemaster.packets.spigot.InitialPacket;
-import me.tonymaster21.bungeemaster.packets.PacketException;
 import me.tonymaster21.bungeemaster.util.PropertyUtil;
 import org.apache.commons.io.IOUtils;
 import org.bukkit.Bukkit;
@@ -20,7 +19,10 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.*;
+import java.net.HttpURLConnection;
+import java.net.Socket;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
@@ -30,7 +32,7 @@ import java.util.stream.Collectors;
 /**
  * @author Andrew Tran
  */
-public class BungeeMasterCommand implements CommandExecutor{
+public class BungeeMasterSpigotCommand implements CommandExecutor{
     public static final String DUMP_URL = "https://api.tonymaster21.me/bungeemaster/dump.php";
     private static Method getOnlinePlayersMethod;
     static {
@@ -43,7 +45,7 @@ public class BungeeMasterCommand implements CommandExecutor{
 
     private BungeeMaster bungeeMaster;
 
-    BungeeMasterCommand(BungeeMaster bungeeMaster) {
+    BungeeMasterSpigotCommand(BungeeMaster bungeeMaster) {
         this.bungeeMaster = bungeeMaster;
     }
 
@@ -65,9 +67,12 @@ public class BungeeMasterCommand implements CommandExecutor{
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
             sender.sendMessage(new String[]{
-                ChatColor.GOLD + "BungeeMaster " + bungeeMaster.getDescription().getVersion(),
+                "",
+                ChatColor.GOLD + "BungeeMaster Spigot " + bungeeMaster.getDescription().getVersion(),
+                ChatColor.GOLD + "Port: " + ChatColor.YELLOW + bungeeMaster.getPort(),
                 ChatColor.GOLD + "Status: " + (bungeeMaster.isLocked() ? ChatColor.RED + "Not Connected" : ChatColor.GREEN + "Connected (ping: " + bungeeMaster.getPing() + "ms)"),
-                ChatColor.GOLD + "Usage: " + ChatColor.YELLOW + "/" + label + " [reconnect|reload|dump]"
+                ChatColor.GOLD + "Usage: " + ChatColor.YELLOW + "/" + label + " [reconnect|reload|dump]",
+                ""
             });
             return true;
         }
@@ -75,7 +80,7 @@ public class BungeeMasterCommand implements CommandExecutor{
         if (argument.equals("reconnect") || argument.equals("connect")) {
             try {
                 Socket socket = bungeeMaster.connect();
-                boolean success = bungeeMaster.sendPacket(new InitialPacket(), socket);
+                boolean success = bungeeMaster.sendPacket(bungeeMaster.getInitialPacket(true), socket);
                 if (!success) {
                     throw new PacketException("Did not receive true after sending initial packet to BungeeMaster on BungeeCord, connection issues?");
                 }
@@ -103,7 +108,7 @@ public class BungeeMasterCommand implements CommandExecutor{
                     arguments.put("spigot_skript_version", skriptPlugin.getDescription().getVersion());
                 }
                 arguments.put("spigot_bm_version", bungeeMaster.getDescription().getVersion());
-                arguments.put("spigot_bm_bungee_port", Integer.toString(bungeeMaster.getBungeeMasterConfig().getPort()));
+                arguments.put("spigot_bm_bungee_port", Integer.toString(bungeeMaster.getBungeeMasterSpigotConfig().getPort()));
                 arguments.put("spigot_bm_locked", Boolean.toString(bungeeMaster.isLocked()));
                 String plugins = Arrays.stream(Bukkit.getPluginManager().getPlugins()).map(plugin -> {
                     String name = plugin.getName();
@@ -165,7 +170,7 @@ public class BungeeMasterCommand implements CommandExecutor{
                 }
             });
         } else {
-            sender.sendMessage(ChatColor.RED + "Invalid argument. Use " + ChatColor.GRAY + "/" + command + ChatColor.RED + " for help.");
+            sender.sendMessage(ChatColor.RED + "Invalid argument. Use " + ChatColor.GRAY + "/" + label + ChatColor.RED + " for help.");
         }
         return true;
     }
