@@ -5,7 +5,7 @@ import ch.njol.skript.lang.ExpressionType;
 import ch.njol.skript.lang.SkriptParser;
 import ch.njol.util.Kleenean;
 import me.tonymaster21.bungeemaster.spigot.BungeeMaster;
-import me.tonymaster21.bungeemaster.spigot.skript.BMExpession;
+import me.tonymaster21.bungeemaster.spigot.skript.BMExpression;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Documentation;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Example;
 import me.tonymaster21.bungeemaster.spigot.skript.elements.effects.EffProxyCommand;
@@ -27,7 +27,7 @@ import org.bukkit.event.Event;
                 "last [(ran|executed)] bungee[cord] (command|cmd) output"
         }
 )
-public class ExprLastProxyCmdOutput extends BMExpession<String>{
+public class ExprLastProxyCmdOutput extends BMExpression<String> {
     static {
         BungeeMaster.getBungeeMaster().registerExpression(ExprLastProxyCmdOutput.class,
                 ExpressionType.SIMPLE);
