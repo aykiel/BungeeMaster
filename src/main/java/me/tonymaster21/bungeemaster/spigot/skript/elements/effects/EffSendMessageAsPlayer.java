@@ -8,7 +8,6 @@ import me.tonymaster21.bungeemaster.spigot.BungeeMaster;
 import me.tonymaster21.bungeemaster.spigot.skript.BMEffect;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Documentation;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Example;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
 import java.util.Arrays;
@@ -28,7 +27,7 @@ import java.util.Objects;
     },
     syntax = {
         "make %strings/%players% (say|send) [bungee][cord] [message][s] %strings%",
-        "send [bungee][cord] [chat] message[s] %strings% (from|as) %strings/players%"
+        "(send|message) [bungee][cord] [chat] message[s] %strings% (from|as) %strings/players% [on] [bungee][cord]"
     }
 )
 public class EffSendMessageAsPlayer extends BMEffect{
@@ -45,9 +44,7 @@ public class EffSendMessageAsPlayer extends BMEffect{
         if (messages == null || senders == null) {
             return;
         }
-        Arrays.stream(senders)
-                .filter(Objects::nonNull)
-                .map(object -> object instanceof Player ? ((Player) object).getName() : object.toString())
+        Arrays.stream(getBungeeMaster().convertObjectsToNamesAndUUIDs(senders))
                 .forEach(sender -> Arrays.stream(messages)
                         .filter(Objects::nonNull)
                         .forEach(message -> send(new SendMessageAsPlayerPacket(sender, message))));

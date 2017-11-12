@@ -21,7 +21,7 @@ public class SendMessagePacketHandler extends BungeeEffectPacketHandler<SendMess
         if (player == null) {
             return getErrorResult("Player is null");
         }
-        ProxiedPlayer proxiedPlayer = getBungeeMaster().getProxy().getPlayer(player);
+        ProxiedPlayer proxiedPlayer = getBungeeMaster().getPlayer(player);
         if (proxiedPlayer == null) {
             return getErrorResult("Player " + player + " is not online");
         }

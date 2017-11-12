@@ -9,11 +9,9 @@ import me.tonymaster21.bungeemaster.spigot.BungeeMaster;
 import me.tonymaster21.bungeemaster.spigot.skript.BMEffect;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Documentation;
 import me.tonymaster21.bungeemaster.spigot.skript.annotations.Example;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * @author Andrew Tran
@@ -49,10 +47,8 @@ public class EffKickPlayer extends BMEffect{
             if (players == null) {
                 return;
             }
-            Arrays.stream(players)
-                .filter(Objects::nonNull)
-                .map(object -> object instanceof Player ? ((Player) object).getName() : object.toString())
-                .forEach(player -> send(new KickPlayerPacket(player, reason)));
+            Arrays.stream(getBungeeMaster().convertObjectsToNamesAndUUIDs(players))
+                    .forEach(player -> send(new KickPlayerPacket(player, reason)));
         }
     }
 

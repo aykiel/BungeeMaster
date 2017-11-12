@@ -1,7 +1,6 @@
 package me.tonymaster21.bungeemaster.bungee.handlers;
 
 import me.tonymaster21.bungeemaster.bungee.BungeeMaster;
-import me.tonymaster21.bungeemaster.packets.EffectResult;
 import me.tonymaster21.bungeemaster.packets.Result;
 import me.tonymaster21.bungeemaster.packets.spigot.SendMessageAsPlayerPacket;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -26,7 +25,7 @@ public class SendMessageAsPlayerPacketHandler extends BungeeEffectPacketHandler<
         if (message == null) {
             return getErrorResult("Message is null");
         }
-        ProxiedPlayer proxiedPlayer = bungeeMaster.getProxy().getPlayer(sender);
+        ProxiedPlayer proxiedPlayer = bungeeMaster.getPlayer(sender);
         if (proxiedPlayer == null) {
             return getErrorResult("Player "  + sender + " is not online");
         }

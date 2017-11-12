@@ -13,12 +13,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class BungeeMaster extends JavaPlugin {
     private static BungeeMaster bungeeMaster;
@@ -260,5 +262,19 @@ public class BungeeMaster extends JavaPlugin {
         public RegistrationException(Throwable cause) {
             super(cause);
         }
+    }
+
+    public String[] convertObjectsToNamesAndUUIDs(Object[] objects){
+        return Arrays.stream(objects)
+                .map(obj -> {
+                    if (obj instanceof Player) {
+                        return ((Player) obj).getUniqueId().toString();
+                    } else if (obj instanceof String) {
+                        return (String) obj;
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .toArray(String[]::new);
     }
 }
