@@ -1,12 +1,12 @@
 package me.tonymaster21.bungeemaster.packets.spigot;
 
-import me.tonymaster21.bungeemaster.packets.EffectPacket;
+import me.tonymaster21.bungeemaster.packets.ActionPacket;
 import me.tonymaster21.bungeemaster.packets.PacketDirection;
 
 /**
  * @author Andrew Tran
  */
-public class SendMessageAsPlayerPacket extends EffectPacket {
+public class SendMessageAsPlayerPacket extends ActionPacket {
     private static final long serialVersionUID = -3471075400251750721L;
 
     private String sender, message;

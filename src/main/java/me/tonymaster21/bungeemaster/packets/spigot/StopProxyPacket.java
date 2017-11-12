@@ -1,12 +1,12 @@
 package me.tonymaster21.bungeemaster.packets.spigot;
 
-import me.tonymaster21.bungeemaster.packets.EffectPacket;
+import me.tonymaster21.bungeemaster.packets.ActionPacket;
 import me.tonymaster21.bungeemaster.packets.PacketDirection;
 
 /**
  * @author Andrew Tran
  */
-public class StopProxyPacket extends EffectPacket{
+public class StopProxyPacket extends ActionPacket {
     private static final long serialVersionUID = -4094621525686852722L;
     private String reason;
 
