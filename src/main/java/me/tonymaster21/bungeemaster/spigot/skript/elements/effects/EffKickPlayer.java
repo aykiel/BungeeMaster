@@ -17,17 +17,17 @@ import java.util.Arrays;
  * @author Andrew Tran
  */
 @Documentation(
-    name = "Kick Player",
-    description = "Kick a player from the proxy",
-    examples = {
-        @Example({
-            "kick bungee player due to \"Turn off your l33t hacks\""
-        })
-    },
-    syntax = {
-        "kick (all bungee[cord] players|everyone) [due to %-strings%]",
-        "kick bungee[cord] [player][s] %strings/players% [due to %-strings%]"
-    }
+        name = "Kick Player",
+        description = "Kick a player from the proxy",
+        examples = {
+                @Example({
+                        "kick bungee player due to \"Turn off your l33t hacks\""
+                })
+        },
+        syntax = {
+                "kick (all bungee[cord] players|everyone) [due to %-strings%]",
+                "kick bungee[cord] [player][s] %strings/players% [due to %-strings%]"
+        }
 )
 public class EffKickPlayer extends BMEffect{
     static {

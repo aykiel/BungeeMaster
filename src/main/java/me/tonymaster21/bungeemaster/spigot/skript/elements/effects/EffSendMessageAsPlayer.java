@@ -17,18 +17,18 @@ import java.util.Objects;
  * @author Andrew Tran
  */
 @Documentation(
-    name = "Send Message As Player",
-    description = "Force a player to say a message",
-    examples = {
-        @Example({
-                "on join:",
-                "\tsend bungeecord message \"Hello!\" as player"}
-        )
-    },
-    syntax = {
-        "make %strings/%players% (say|send) [bungee][cord] [message][s] %strings%",
-        "(send|message) [bungee][cord] [chat] message[s] %strings% (from|as) %strings/players% [on] [bungee][cord]"
-    }
+        name = "Send Message As Player",
+        description = "Force a player to say a message",
+        examples = {
+                @Example({
+                        "on join:",
+                        "\tsend bungeecord message \"Hello!\" as player"}
+                )
+        },
+        syntax = {
+                "make %strings/%players% (say|send) [bungee][cord] [message][s] %strings%",
+                "(send|message) [bungee][cord] [chat] message[s] %strings% (from|as) %strings/players% [on] [bungee][cord]"
+        }
 )
 public class EffSendMessageAsPlayer extends BMEffect{
     static {

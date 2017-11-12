@@ -16,17 +16,17 @@ import java.util.Arrays;
  * @author Andrew Tran
  */
 @Documentation(
-    name = "Connect Player",
-    description = "Connect a player to a server",
-    examples = {
-        @Example({
-                "connect all players to \"trollmc.org\""
-        })
-    },
-    syntax = {
-        "connect %strings/players% to [local] [server] %string%",
-        "connect %strings/players% to [remote] (ip|address) %string%"
-    }
+        name = "Connect Player",
+        description = "Connect a player to a server",
+        examples = {
+                @Example({
+                        "connect all players to \"trollmc.org\""
+                })
+        },
+        syntax = {
+                "connect %strings/players% to [local] [server] %string%",
+                "connect %strings/players% to [remote] (ip|address) %string%"
+        }
 )
 public class EffConnectPlayer extends BMEffect {
     static {

@@ -17,19 +17,19 @@ import java.util.Arrays;
  * @author Andrew Tran
  */
 @Documentation(
-    name = "Send Message",
-    description = "Send a message to players on the proxy",
-    examples = {
-        @Example({
-            "send message \"Hello!\" to \"TonyMaster21\" on bungee"
-        })
-    },
-    syntax = {
-        "broadcast [on] bungee[cord] [message][s] %strings%",
-        "broadcast [message][s] %strings% on bungee[cord]",
-        "(send|message) [on] bungee[cord] [message][s] %strings% to [player][s] %strings/players%",
-        "(send|message) [message][s] %strings% to [player][s] %strings/players% on bungee[cord]"
-    }
+        name = "Send Message",
+        description = "Send a message to players on the proxy",
+        examples = {
+                @Example({
+                      "send message \"Hello!\" to \"TonyMaster21\" on bungee"
+                })
+        },
+        syntax = {
+                "broadcast [on] bungee[cord] [message][s] %strings%",
+                "broadcast [message][s] %strings% on bungee[cord]",
+                "(send|message) [on] bungee[cord] [message][s] %strings% to [player][s] %strings/players%",
+                "(send|message) [message][s] %strings% to [player][s] %strings/players% on bungee[cord]"
+        }
 )
 public class EffSendMessage extends BMEffect{
     static {
