@@ -38,7 +38,8 @@ public class BungeeMaster extends Plugin {
             new KickAllPlayersPacketHandler(KickAllPlayersPacket.class, this),
             new KickPlayerPacketHandler(KickPlayerPacket.class, this),
             new BroadcastMessagePacketHandler(BroadcastMessagePacket.class, this),
-            new SendMessagePacketHandler(SendMessagePacket.class, this)
+            new SendMessagePacketHandler(SendMessagePacket.class, this),
+            new StopProxyPacketHandler(StopProxyPacket.class, this)
     ));
 
     @Override
