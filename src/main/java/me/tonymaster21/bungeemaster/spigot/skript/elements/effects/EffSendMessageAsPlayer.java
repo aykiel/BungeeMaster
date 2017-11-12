@@ -45,9 +45,11 @@ public class EffSendMessageAsPlayer extends BMEffect{
             return;
         }
         Arrays.stream(getBungeeMaster().convertObjectsToNamesAndUUIDs(senders))
-                .forEach(sender -> Arrays.stream(messages)
+                .forEach(sender ->
+                        Arrays.stream(messages)
                         .filter(Objects::nonNull)
-                        .forEach(message -> send(new SendMessageAsPlayerPacket(sender, message))));
+                        .forEach(message -> send(new SendMessageAsPlayerPacket(sender, message)))
+                );
     }
 
     @Override
