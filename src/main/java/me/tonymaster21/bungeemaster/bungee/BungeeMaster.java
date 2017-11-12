@@ -40,7 +40,8 @@ public class BungeeMaster extends Plugin {
             new BroadcastMessagePacketHandler(BroadcastMessagePacket.class, this),
             new SendMessagePacketHandler(SendMessagePacket.class, this),
             new StopProxyPacketHandler(StopProxyPacket.class, this),
-            new ProxyCommandPacketHandler(ProxyCommandPacket.class, this)
+            new ProxyCommandPacketHandler(ProxyCommandPacket.class, this),
+            new RetrieveServerAddressPacketHandler(RetrieveServerAddressPacket.class, this)
     ));
 
     @Override
