@@ -10,7 +10,7 @@ import java.net.Socket;
 /**
  * @author Andrew Tran
  */
-public class SendMessagePacketHandler extends BungeeEffectPacketHandler<SendMessagePacket>{
+public class SendMessagePacketHandler extends BungeeActionPacketHandler<SendMessagePacket> {
     public SendMessagePacketHandler(Class<SendMessagePacket> packetClass, BungeeMaster bungeeMaster) {
         super(packetClass, bungeeMaster);
     }

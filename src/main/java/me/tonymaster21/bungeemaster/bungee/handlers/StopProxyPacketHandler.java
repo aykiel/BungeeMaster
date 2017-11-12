@@ -9,7 +9,7 @@ import java.net.Socket;
 /**
  * @author Andrew Tran
  */
-public class StopProxyPacketHandler extends BungeeEffectPacketHandler<StopProxyPacket>{
+public class StopProxyPacketHandler extends BungeeActionPacketHandler<StopProxyPacket> {
     public StopProxyPacketHandler(Class packetClass, BungeeMaster bungeeMaster) {
         super(packetClass, bungeeMaster);
     }

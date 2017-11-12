@@ -10,7 +10,7 @@ import java.util.Arrays;
 /**
  * @author Andrew Tran
  */
-public class BroadcastMessagePacketHandler extends BungeeEffectPacketHandler<BroadcastMessagePacket>{
+public class BroadcastMessagePacketHandler extends BungeeActionPacketHandler<BroadcastMessagePacket> {
     public BroadcastMessagePacketHandler(Class<BroadcastMessagePacket> packetClass, BungeeMaster bungeeMaster) {
         super(packetClass, bungeeMaster);
     }

@@ -9,8 +9,8 @@ import me.tonymaster21.bungeemaster.packets.Result;
 /**
  * @author Andrew Tran
  */
-public abstract class BungeeEffectPacketHandler<T extends Packet<ActionResult>> extends BungeePacketHandler<T>{
-    public BungeeEffectPacketHandler(Class<T> packetClass, BungeeMaster bungeeMaster) {
+public abstract class BungeeActionPacketHandler<T extends Packet<ActionResult>> extends BungeePacketHandler<T>{
+    public BungeeActionPacketHandler(Class<T> packetClass, BungeeMaster bungeeMaster) {
         super(packetClass, bungeeMaster);
     }
 

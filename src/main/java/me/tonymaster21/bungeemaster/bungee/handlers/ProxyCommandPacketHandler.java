@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 /**
  * @author Andrew Tran
  */
-public class ProxyCommandPacketHandler extends BungeeEffectPacketHandler<ProxyCommandPacket>{
+public class ProxyCommandPacketHandler extends BungeeActionPacketHandler<ProxyCommandPacket> {
     public ProxyCommandPacketHandler(Class<ProxyCommandPacket> packetClass, BungeeMaster bungeeMaster) {
         super(packetClass, bungeeMaster);
     }

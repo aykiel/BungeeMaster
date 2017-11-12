@@ -9,7 +9,7 @@ import java.net.Socket;
 /**
  * @author Andrew Tran
  */
-public class KickAllPlayersPacketHandler extends BungeeEffectPacketHandler<KickAllPlayersPacket>{
+public class KickAllPlayersPacketHandler extends BungeeActionPacketHandler<KickAllPlayersPacket> {
     public KickAllPlayersPacketHandler(Class<KickAllPlayersPacket> packetClass, BungeeMaster bungeeMaster) {
         super(packetClass, bungeeMaster);
     }

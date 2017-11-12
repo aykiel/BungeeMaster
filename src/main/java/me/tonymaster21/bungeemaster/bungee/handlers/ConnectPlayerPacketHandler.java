@@ -12,7 +12,7 @@ import java.net.Socket;
 /**
  * @author Andrew Tran
  */
-public class ConnectPlayerPacketHandler extends BungeeEffectPacketHandler<ConnectPlayerPacket>{
+public class ConnectPlayerPacketHandler extends BungeeActionPacketHandler<ConnectPlayerPacket> {
     public ConnectPlayerPacketHandler(Class<ConnectPlayerPacket> packetClass, BungeeMaster bungeeMaster) {
         super(packetClass, bungeeMaster);
     }
