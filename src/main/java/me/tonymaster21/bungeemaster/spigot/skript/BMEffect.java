@@ -1,7 +1,7 @@
 package me.tonymaster21.bungeemaster.spigot.skript;
 
 import ch.njol.skript.lang.Effect;
-import me.tonymaster21.bungeemaster.packets.EffectResult;
+import me.tonymaster21.bungeemaster.packets.ActionResult;
 import me.tonymaster21.bungeemaster.packets.Packet;
 import me.tonymaster21.bungeemaster.spigot.BungeeMaster;
 
@@ -13,15 +13,15 @@ public abstract class BMEffect extends Effect{
         return BungeeMaster.getBungeeMaster();
     }
 
-    public Object send(Packet<EffectResult> packet) {
-        EffectResult effectResult = getBungeeMaster().attemptSendPacket(packet);
-        if (!effectResult.isSuccess()){
+    public Object send(Packet<ActionResult> packet) {
+        ActionResult actionResult = getBungeeMaster().attemptSendPacket(packet);
+        if (!actionResult.isSuccess()){
             getBungeeMaster().getLogger().warning("Effect sending a " + packet.getName() + " packet failed. " +
-                    (effectResult.getError() == null ? "" : "Error: " + effectResult.getError()));
-            if (effectResult.getThrowable() != null){
-                effectResult.getThrowable().printStackTrace();
+                    (actionResult.getError() == null ? "" : "Error: " + actionResult.getError()));
+            if (actionResult.getThrowable() != null){
+                actionResult.getThrowable().printStackTrace();
             }
         }
-        return effectResult.getObject();
+        return actionResult.getObject();
     }
 }

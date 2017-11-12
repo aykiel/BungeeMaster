@@ -5,34 +5,34 @@ import java.io.Serializable;
 /**
  * @author Andrew Tran
  */
-public class EffectResult implements Serializable{
+public class ActionResult implements Serializable{
     private static final long serialVersionUID = 8199629052744350162L;
     private Object object;
     private boolean success;
     private String error;
     private Throwable throwable;
 
-    public EffectResult(boolean success) {
+    public ActionResult(boolean success) {
         this.success = success;
     }
 
-    public EffectResult(boolean success, String error) {
+    public ActionResult(boolean success, String error) {
         this.success = success;
         this.error = error;
     }
 
-    public EffectResult(boolean success, String error, Throwable throwable) {
+    public ActionResult(boolean success, String error, Throwable throwable) {
         this.success = success;
         this.error = error;
         this.throwable = throwable;
     }
 
-    public EffectResult(boolean success, Throwable throwable) {
+    public ActionResult(boolean success, Throwable throwable) {
         this.success = success;
         this.throwable = throwable;
     }
 
-    public EffectResult(boolean success, Object object) {
+    public ActionResult(boolean success, Object object) {
         this.success = success;
         this.object = object;
     }
