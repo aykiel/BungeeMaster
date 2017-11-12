@@ -1,7 +1,6 @@
 package me.tonymaster21.bungeemaster.bungee.handlers;
 
 import me.tonymaster21.bungeemaster.bungee.BungeeMaster;
-import me.tonymaster21.bungeemaster.bungee.BungeePacketHandler;
 import me.tonymaster21.bungeemaster.packets.spigot.InitialPacket;
 import me.tonymaster21.bungeemaster.packets.Result;
 

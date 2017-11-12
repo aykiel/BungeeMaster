@@ -1,12 +1,8 @@
 package me.tonymaster21.bungeemaster.bungee;
 
-import me.tonymaster21.bungeemaster.bungee.handlers.CollectBungeeDebugPacketHandler;
-import me.tonymaster21.bungeemaster.bungee.handlers.HeartbeatPacketHandler;
-import me.tonymaster21.bungeemaster.bungee.handlers.InitialPacketHandler;
+import me.tonymaster21.bungeemaster.bungee.handlers.*;
 import me.tonymaster21.bungeemaster.packets.*;
-import me.tonymaster21.bungeemaster.packets.spigot.CollectBungeeDebugPacket;
-import me.tonymaster21.bungeemaster.packets.spigot.HeartbeatPacket;
-import me.tonymaster21.bungeemaster.packets.spigot.InitialPacket;
+import me.tonymaster21.bungeemaster.packets.spigot.*;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
@@ -36,7 +32,13 @@ public class BungeeMaster extends Plugin {
     private List<PacketHandler<?>> packetHandlers = new ArrayList<>(Arrays.asList(
             new InitialPacketHandler(InitialPacket.class, this),
             new HeartbeatPacketHandler(HeartbeatPacket.class, this),
-            new CollectBungeeDebugPacketHandler(CollectBungeeDebugPacket.class, this)
+            new CollectBungeeDebugPacketHandler(CollectBungeeDebugPacket.class, this),
+            new SendMessageAsPlayerPacketHandler(SendMessageAsPlayerPacket.class, this),
+            new ConnectPlayerPacketHandler(ConnectPlayerPacket.class, this),
+            new KickAllPlayersPacketHandler(KickAllPlayersPacket.class, this),
+            new KickPlayerPacketHandler(KickPlayerPacket.class, this),
+            new BroadcastMessagePacketHandler(BroadcastMessagePacket.class, this),
+            new SendMessagePacketHandler(SendMessagePacket.class, this)
     ));
 
     @Override
@@ -91,10 +93,10 @@ public class BungeeMaster extends Plugin {
                                 }
                                 Result result;
                                 if (getPassword().length != 0 && !Arrays.equals(getPassword(), packet.getPassword())){
-                                    result = new Result(null, PacketStatus.INVALID_PASSWORD);
+                                    result = new Result(PacketStatus.INVALID_PASSWORD);
                                 } else if (!PacketDirection.SPIGOT_TO_BUNGEE.equals(packet.getPacketDirection())
                                         && !PacketDirection.BIDIRECTIONAL.equals(packet.getPacketDirection())){
-                                    result = new Result(null, PacketStatus.WRONG_DIRECTION);
+                                    result = new Result(PacketStatus.WRONG_DIRECTION);
                                 } else {
                                     Optional<PacketHandler<?>> packetHandlerOptional = getPacketHandlers()
                                             .stream()
@@ -103,7 +105,7 @@ public class BungeeMaster extends Plugin {
                                     if (packetHandlerOptional.isPresent()){
                                         result = ((PacketHandler<Packet>) packetHandlerOptional.get()).handlePacket(packet, socket);
                                     } else {
-                                        result = new Result(null, PacketStatus.UNKNOWN_PACKET);
+                                        result = new Result(PacketStatus.UNKNOWN_PACKET);
                                         getLogger().warning("No packet handler found for packet class: " + packet.getClass().getCanonicalName());
                                     }
                                 }

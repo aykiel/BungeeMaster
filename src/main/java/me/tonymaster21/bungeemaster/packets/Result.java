@@ -15,6 +15,10 @@ public class Result implements Serializable{
         this.packetStatus = packetStatus;
     }
 
+    public Result(PacketStatus packetStatus) {
+        this.packetStatus = packetStatus;
+    }
+
     public Object getObject() {
         return object;
     }

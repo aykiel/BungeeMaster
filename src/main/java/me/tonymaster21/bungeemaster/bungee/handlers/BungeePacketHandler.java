@@ -1,5 +1,6 @@
-package me.tonymaster21.bungeemaster.bungee;
+package me.tonymaster21.bungeemaster.bungee.handlers;
 
+import me.tonymaster21.bungeemaster.bungee.BungeeMaster;
 import me.tonymaster21.bungeemaster.packets.Packet;
 import me.tonymaster21.bungeemaster.packets.PacketHandler;
 

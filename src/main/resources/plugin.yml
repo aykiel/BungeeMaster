@@ -1,7 +1,7 @@
 name: BungeeMaster
 main: me.tonymaster21.bungeemaster.spigot.BungeeMaster
 version: @VERSION@
-author: TonyMaster21
+authors: [TonyMaster21, xXAndrew28Xx]
 description: Communicate with your Bungeecord instance!
 website: https://bm.tonymaster21.me/
 soft-depend: [Skript]

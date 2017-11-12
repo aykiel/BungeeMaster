@@ -1,9 +1,12 @@
 package me.tonymaster21.bungeemaster.spigot;
 
 import ch.njol.skript.Skript;
+import ch.njol.skript.SkriptAddon;
+import ch.njol.skript.lang.Effect;
 import me.tonymaster21.bungeemaster.packets.*;
 import me.tonymaster21.bungeemaster.packets.spigot.HeartbeatPacket;
 import me.tonymaster21.bungeemaster.packets.spigot.InitialPacket;
+import me.tonymaster21.bungeemaster.spigot.skript.annotations.Syntax;
 import org.apache.commons.io.IOUtils;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
@@ -15,8 +18,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Arrays;
 
 public class BungeeMaster extends JavaPlugin {
+    private static BungeeMaster bungeeMaster;
+
     private File configFile = new File(getDataFolder(), "config.yml");
     private volatile BungeeMasterConfig bungeeMasterConfig;
     private volatile boolean heartbeatDone = true;
@@ -25,12 +31,18 @@ public class BungeeMaster extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        bungeeMaster = this;
         Plugin skriptPlugin = Bukkit.getPluginManager().getPlugin("Skript");
         if (skriptPlugin == null){
             stop("You need Skript to be able to run this addon. Download Skript at https://github.com/bensku/Skript/releases");
             return;
         }
-        Skript.registerAddon(this);
+        SkriptAddon addon = Skript.registerAddon(this);
+        try {
+            addon.loadClasses("me.tonymaster21.bungeemaster.spigot.skript", "elements");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Metrics metrics = new Metrics(this);
         metrics.addCustomChart(new Metrics.SimplePie("skript_version", () -> skriptPlugin.getDescription() == null ? null : skriptPlugin.getDescription().getVersion()));
         if (!getDataFolder().exists() && !getDataFolder().mkdir()){
@@ -79,6 +91,11 @@ public class BungeeMaster extends JavaPlugin {
             ping = remoteTimestamp - timestamp;
             heartbeatDone = true;
         }, 0, bungeeMasterConfig.getHeartbeatSeconds() * 20);
+
+    }
+
+    public static BungeeMaster getBungeeMaster() {
+        return bungeeMaster;
     }
 
     public void stop(String message) {
@@ -124,7 +141,7 @@ public class BungeeMaster extends JavaPlugin {
     public <R> R attemptSendPacket(Packet<R> packet) {
         try {
             return sendPacket(packet, connect());
-        } catch (IOException | PacketException e) {
+        } catch (IOException e) {
             getLogger().warning("Failed to send packet, attempting reconnect and trying again");
             e.printStackTrace();
             Socket socket = attemptReconnect();
@@ -133,10 +150,13 @@ public class BungeeMaster extends JavaPlugin {
                 try {
                     return sendPacket(packet, socket);
                 } catch (PacketException e1) {
-                    getLogger().warning("Second attempt of sending packet failed again");
+                    getLogger().warning("Failed to send packet");
                     e1.printStackTrace();
                 }
             }
+        } catch (PacketException e) {
+            getLogger().warning("Failed to send packet");
+            e.printStackTrace();
         }
         return null;
     }
@@ -214,5 +234,30 @@ public class BungeeMaster extends JavaPlugin {
 
     public void setLocked(boolean locked) {
         this.locked = locked;
+    }
+
+    public void registerEffect(Class<? extends Effect> effect){
+        if (!effect.isAnnotationPresent(Syntax.class)){
+            throw new RegistrationException("Effect class: " + effect.getCanonicalName() + " does not have a Syntax annotation");
+        }
+        Syntax syntaxes = effect.getAnnotation(Syntax.class);
+        Skript.registerEffect(effect, Arrays.stream(syntaxes.value()).map(syntax -> "[bm] [bungeemaster] " + syntax).toArray(String[]::new));
+    }
+
+    public static class RegistrationException extends RuntimeException {
+        public RegistrationException() {
+        }
+
+        public RegistrationException(String message) {
+            super(message);
+        }
+
+        public RegistrationException(String message, Throwable cause) {
+            super(message, cause);
+        }
+
+        public RegistrationException(Throwable cause) {
+            super(cause);
+        }
     }
 }
