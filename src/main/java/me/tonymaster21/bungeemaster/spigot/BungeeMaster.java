@@ -149,20 +149,13 @@ public class BungeeMaster extends JavaPlugin{
             }
         });
 
-        try {
-            Socket socket = connect();
+        try (Socket socket = connect()){
             boolean status = sendPacket(getInitialPacket(false), socket);
             if (status) {
                 getLogger().info("Successfully connected to BungeeMaster on BungeeCord");
             } else {
                 getLogger().warning("Did not receive true after sending initial packet to BungeeMaster on BungeeCord, connection issues?");
                 lock();
-            }
-            try {
-                socket.close();
-            } catch (IOException e) {
-                getLogger().warning("Failed to close initial socket, but that should be no problem");
-                e.printStackTrace();
             }
         } catch (IOException | PacketException e) {
             getLogger().warning("Failed to connect to BungeeMaster on BungeeCord at " + getCombinedHost());
