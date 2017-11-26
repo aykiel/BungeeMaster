@@ -2,7 +2,7 @@
 For server administrators, click [here](https://forums.skunity.com/resources/328/) to download.  
 For server developers, run `gradlew build` to build.
 
-## Links
+## Links:
 **Website:** https://bm.tonymaster21.me/  
 **skUnity:** https://forums.skunity.com/resources/bungeemaster.328/  
 **Discord:** https://discord.gg/7YWg2kC  
